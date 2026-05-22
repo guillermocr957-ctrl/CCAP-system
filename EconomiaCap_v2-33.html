@@ -152,6 +152,11 @@ button, .btn, [onclick], input[type="button"], input[type="submit"]{
 .topbar-title{font-size:15px;font-weight:500;color:var(--text)}
 .topbar-sub{font-size:11px;color:var(--muted);margin-top:1px}
 .topbar-right{display:flex;align-items:center;gap:10px}
+.topbar-sync-btn{display:inline-flex;align-items:center;gap:8px;min-width:148px;justify-content:flex-start}
+.topbar-sync-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);box-shadow:0 0 0 2px rgba(148,163,184,.2)}
+.topbar-sync-label{font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
+.topbar-sync-btn.is-syncing .topbar-sync-dot{animation:topbarSyncPulse .85s ease-in-out infinite}
+@keyframes topbarSyncPulse{0%{transform:scale(1);opacity:.8}50%{transform:scale(1.25);opacity:1}100%{transform:scale(1);opacity:.8}}
 .topbar-fx-widget{display:flex;align-items:center;gap:8px;padding:7px 12px;border:1.2px solid rgba(37,99,235,.15);border-radius:999px;background:linear-gradient(135deg,#ffffff 0%,#f0f6ff 100%);box-shadow:0 2px 8px rgba(37,99,235,.1);font-size:12px;color:var(--muted);font-weight:500;}
 .topbar-fx-item{display:flex;align-items:center;gap:6px;font-weight:600;color:var(--text)}
 .topbar-fx-item span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
@@ -4135,6 +4140,10 @@ input.histd-row-select{
       <div class="topbar-sub" id="topbar-sub">Fraternidad Chama</div>
     </div>
     <div class="topbar-right" style="display:flex;gap:8px;align-items:center">
+      <button class="btn btn-sec btn-sm topbar-phone-hide topbar-sync-btn" id="topbar-sync-btn" onclick="manualSyncFromTopbar()" title="Estado de sincronizacion. Clic para sincronizar ahora.">
+        <span class="topbar-sync-dot" id="topbar-sync-dot"></span>
+        <span class="topbar-sync-label" id="topbar-sync-label">Sin conectar</span>
+      </button>
       <button class="btn btn-theme btn-sm topbar-phone-hide" onclick="go('resumen', this)" title="Ir al dashboard">
         <span class="btn-theme-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
       </button>
@@ -25186,6 +25195,7 @@ function initEnterpriseAuthGate() {
   _renderSyncProviderFields();
   _fillSyncInputs();
   _fillAuthGateInputs();
+  updateSyncUI();
   ["auth-gate-email", "auth-gate-password"].forEach((id) => {
     const el = document.getElementById(id);
     if (!el || el.dataset.authGateBound === "1") return;
@@ -25249,24 +25259,29 @@ async function _refreshSupabaseAuthStatus() {
     authEl.textContent = "Configura tu proyecto de Supabase para activar el respaldo remoto.";
     if (dot) dot.style.background = "var(--muted)";
     if (label) label.textContent = "Supabase sin configurar";
+    _setTopbarSyncStatus("idle", "Supabase sin config");
     return;
   }
   authEl.textContent = "Comprobando sesion...";
+  _setTopbarSyncStatus("syncing", "Validando sesion...");
   try {
     const user = await _getSupabaseUser(false);
     if (user) {
       authEl.textContent = `Sesion activa: ${user.email || user.id}`;
       if (dot) dot.style.background = "var(--ing)";
       if (label) label.textContent = "Supabase conectado";
+      _setTopbarSyncStatus("ok", "Supabase conectado");
     } else {
       authEl.textContent = "Config guardada. Falta iniciar sesion para sincronizar.";
       if (dot) dot.style.background = "var(--warn)";
       if (label) label.textContent = "Supabase sin login";
+      _setTopbarSyncStatus("warn", "Supabase sin login");
     }
   } catch (e) {
     authEl.textContent = "Error Supabase: " + (e.message || e);
     if (dot) dot.style.background = "var(--egr)";
     if (label) label.textContent = "Supabase error";
+    _setTopbarSyncStatus("err", "Supabase error");
   }
 }
 function openSupabaseAuthModal(mode = "login") {
@@ -25439,6 +25454,7 @@ async function _sincronizarAhoraSupabase() {
   const msg = document.getElementById("sync-status-msg");
   const dot = document.getElementById("sync-dot");
   if (dot) dot.style.background = "var(--warn)";
+  _setTopbarSyncStatus("syncing", "Sincronizando...");
   if (msg) msg.textContent = "Sincronizando con Supabase...";
   try {
     _isApplyingRemoteSync = true;
@@ -25478,6 +25494,7 @@ async function _sincronizarAhoraSupabase() {
     }
   } catch (e) {
     if (dot) dot.style.background = "var(--egr)";
+    _setTopbarSyncStatus("err", "Error de sync");
     if (msg) msg.textContent = "Error de conexion: " + e.message;
     toast("Error al sincronizar con Supabase", "err");
   } finally {
@@ -25729,6 +25746,31 @@ async function guardarURL() {
   updateSyncUI();
   await sincronizarAhora();
 }
+function _setTopbarSyncStatus(state, text) {
+  const btn = document.getElementById("topbar-sync-btn");
+  const dot = document.getElementById("topbar-sync-dot");
+  const label = document.getElementById("topbar-sync-label");
+  if (!btn || !dot || !label) return;
+  let color = "var(--muted)";
+  if (state === "ok") color = "var(--ing)";
+  else if (state === "warn") color = "var(--warn)";
+  else if (state === "err") color = "var(--egr)";
+  else if (state === "syncing") color = "var(--warn)";
+  dot.style.background = color;
+  if (text) label.textContent = text;
+  btn.classList.toggle("is-syncing", state === "syncing");
+}
+async function manualSyncFromTopbar() {
+  const btn = document.getElementById("topbar-sync-btn");
+  if (btn) btn.disabled = true;
+  _setTopbarSyncStatus("syncing", "Sincronizando...");
+  try {
+    await sincronizarAhora();
+  } finally {
+    if (btn) btn.disabled = false;
+    updateSyncUI();
+  }
+}
 function updateSyncUI() {
   const provider = _getSyncProvider();
   const url = LS.get("ec2_script_url", "");
@@ -25740,9 +25782,11 @@ function updateSyncUI() {
     if (!_hasSupabaseConfig()) {
       if (dot) dot.style.background = "var(--muted)";
       if (label) label.textContent = "Supabase sin configurar";
+      _setTopbarSyncStatus("idle", "Supabase sin config");
     } else {
       if (dot) dot.style.background = "var(--warn)";
       if (label) label.textContent = "Supabase listo";
+      _setTopbarSyncStatus("warn", "Supabase listo");
     }
     _refreshSupabaseAuthStatus();
     return;
@@ -25750,9 +25794,11 @@ function updateSyncUI() {
   if (url) {
     dot.style.background = "var(--ing)";
     label.textContent = "Conectado";
+    _setTopbarSyncStatus("ok", "Conectado");
   } else {
     dot.style.background = "var(--muted)";
     label.textContent = "Sin conectar";
+    _setTopbarSyncStatus("idle", "Sin conectar");
   }
 }
 function _monthKeyFromFecha(fecha) {
@@ -26124,6 +26170,7 @@ async function sincronizarAhora() {
   const msg = document.getElementById("sync-status-msg");
   const dot = document.getElementById("sync-dot");
   if (dot) dot.style.background = "var(--warn)";
+  _setTopbarSyncStatus("syncing", "Sincronizando...");
   if (msg) msg.textContent = "Sincronizando...";
   try {
     _isApplyingRemoteSync = true;
@@ -26156,6 +26203,7 @@ async function sincronizarAhora() {
     else if (panelActual === "plan") renderPlan();
   } catch (e) {
     if (dot) dot.style.background = "var(--egr)";
+    _setTopbarSyncStatus("err", "Error de sync");
     if (msg) msg.textContent = "Error de conexi\xF3n: " + e.message;
     toast("Error al sincronizar", "err");
   } finally {
