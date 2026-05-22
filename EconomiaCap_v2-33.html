@@ -1109,6 +1109,9 @@ input[type=text]:hover,input[type=date]:hover,input[type=number]:hover,input[typ
 ═══════════════════════════════════════════ */
 .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
 .modal-overlay.open{display:flex}
+/* Keep Supabase modals above auth gate (z-index 12000). */
+#modal-supabase-auth.modal-overlay,
+#modal-supabase-secrets.modal-overlay{z-index:13020}
 .modal{background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);border:1.2px solid rgba(37,99,235,.2);border-radius:24px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(30,64,175,.2),inset 0 1px 2px rgba(255,255,255,.86)}
 .modal-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-24px -24px 18px;padding:16px 20px;background:linear-gradient(125deg,#1f3fa8 0%,#2b54cf 58%,#3b82f6 100%);border-bottom:1px solid rgba(147,197,253,.35)}
 .modal-title{font-size:16px;font-weight:820;color:#eff6ff;letter-spacing:.01em}
