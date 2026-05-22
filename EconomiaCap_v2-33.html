@@ -6188,6 +6188,7 @@ input.histd-row-select{
         <div id="auth-gate-status" class="auth-gate-status">Completa tus datos para autenticarte.</div>
         <div class="auth-gate-actions">
           <button class="btn btn-primary" type="button" onclick="authGateLogin()">Ingresar seguro</button>
+          <button class="btn btn-sec" type="button" onclick="openSupabaseSecretsEditor()">Configurar Supabase</button>
         </div>
         <div class="auth-gate-note">Tip: este acceso solicita autenticacion manual para evitar autoingreso al recargar la pagina.</div>
       </div>
@@ -25061,8 +25062,10 @@ function saveSupabaseSecretsFromModal() {
   window._supabaseClientCache = null;
   window._supabaseClientFingerprint = "";
   _fillSyncInputs();
+  _fillAuthGateInputs();
   closeModal("modal-supabase-secrets");
   updateSyncUI();
+  _setAuthGateStatus("Credenciales guardadas. Ahora ingresa tu correo y contrasena.", "ok");
   toast("Credenciales de Supabase actualizadas", "ok");
 }
 function _setAuthGateStatus(msg, kind = "") {
