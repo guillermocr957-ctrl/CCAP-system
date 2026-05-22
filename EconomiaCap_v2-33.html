@@ -114,6 +114,19 @@ button, .btn, [onclick], input[type="button"], input[type="submit"]{
 .panel{display:none}
 .panel.active{display:block}
 
+/* Popout de registro: mostrar solo el panel de registro */
+body.reg-popout .app{grid-template-columns:1fr!important}
+body.reg-popout .sidebar,
+body.reg-popout .sidebar-sensor,
+body.reg-popout .overlay-sidebar,
+body.reg-popout .mob-nav,
+body.reg-popout .hamburger,
+body.reg-popout #overlay-sb{display:none!important}
+body.reg-popout .topbar-right{display:none!important}
+body.reg-popout .panel{display:none!important}
+body.reg-popout #panel-registrar{display:block!important}
+body.reg-popout .panel-wrap{padding:14px 16px}
+
 /* No extra body overlay: full-height is handled by --app-h from JS */
 
 /* ═══════════════════════════════════════════
@@ -271,6 +284,11 @@ input[type=text]:hover,input[type=date]:hover,input[type=number]:hover,input[typ
 .tab-btn.egr.on{border-color:rgba(185,28,28,.4);background:linear-gradient(135deg,rgba(185,28,28,.15) 0%,rgba(185,28,28,.07) 100%);color:#991b1b;box-shadow:0 10px 22px rgba(185,28,28,.16),inset 0 1px 0 rgba(255,255,255,.9)}
 .tab-btn.trn{border-color:rgba(71,85,105,.28);color:#475569}
 .tab-btn.trn.on{border-color:rgba(51,65,85,.42);background:linear-gradient(135deg,rgba(71,85,105,.18) 0%,rgba(71,85,105,.08) 100%);color:#334155;box-shadow:0 10px 22px rgba(51,65,85,.14),inset 0 1px 0 rgba(255,255,255,.9)}
+
+@media(min-width:769px){
+  #panel-registrar .tab-row[aria-label="Tipo de movimiento"]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:stretch}
+  #panel-registrar .tab-row[aria-label="Tipo de movimiento"] .tab-btn{width:100%;white-space:nowrap}
+}
 
 /* SYNC PANEL */
 .sync-layout{display:grid;grid-template-columns:1fr;gap:16px;align-items:start;max-width:1180px}
@@ -9374,6 +9392,7 @@ function _bindLiveCrossWindowRefresh() {
 }
 function go(id, el) {
   var _a, _b;
+  if (_regPopoutMode && id !== "registrar") id = "registrar";
   if (id !== "reportes" && _repDonutOpen) closeRepDonutView();
   document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
   document.querySelectorAll(".sb-item").forEach((s) => s.classList.remove("active"));
@@ -9910,6 +9929,7 @@ function loadResumenFxRates() {
   });
 }
 let regTipo = "ingreso", regMoneda = "PEN", regBoleta = null, regCuria = false, regCuriaSolicitarA = "", regCuriaModo = "total", regCuriaMontoEsperado = "", regPendienteCuentas = false, regPorConfirmar = false, regDividir = false, regLineas = [];
+let _regLastTipo = "ingreso";
 let _regCalendarCursor = "";
 let _regCalendarFocusDay = "";
 let _regMultiCurrentLineId = null;
@@ -10014,8 +10034,14 @@ function nuevoMovimiento(origenWidget, origenId) {
     const _mr = document.querySelector(".moneda-row");
     if (_mr) _mr.style.display = "";
   }
-  setRegTipo("ingreso", true);
-  if (fechaLocked) toggleLockFecha();
+  setRegTipo(_regLastTipo || regTipo || "ingreso", true);
+  if (fechaLocked) {
+    const _fechaInput = document.getElementById("reg-fecha");
+    if (_fechaInput) {
+      _fechaInput.value = fechaLockedValue || _fechaInput.value || today();
+      onFechaChange();
+    }
+  }
   go("registrar", document.getElementById("sb-registrar"));
   ["reg-grupo", "reg-cuenta", "reg-sub"].forEach((id) => {
     const el = document.getElementById(id);
@@ -10503,7 +10529,7 @@ function editarMovDesdeWidget(movId, origenWidget, origenId) {
 }
 function initRegistrar() {
   if (!editId) {
-    regTipo = "ingreso";
+    regTipo = _regLastTipo || regTipo || "ingreso";
     regMoneda = "PEN";
     regBoleta = "no";
     regCuria = false;
@@ -10709,6 +10735,7 @@ function _setupRegPlanBidirectionalSync() {
 }
 function setRegTipo(t, silent) {
   regTipo = t;
+  if (t === "ingreso" || t === "egreso" || t === "transferencia") _regLastTipo = t;
   const isTrn = t === "transferencia";
   const isEgr = t === "egreso";
   document.getElementById("treg-ing").classList.toggle("on", t === "ingreso");
@@ -13512,7 +13539,7 @@ async function registrar() {
   regVehiculoOrigen = null;
   window._regFocusTypeAfterInit = regTipo;
   initRegistrar();
-  renderResumen();
+  setTimeout(() => renderResumen(), 0);
   setTimeout(() => {
     if (window._regFocusTypeAfterInit === savedType) {
       _focusRegABCAfterRegistration(savedType);
@@ -16974,7 +17001,7 @@ async function registrarTransferencia() {
     toast("Transferencia actualizada \u2713", "ok");
     invalidateCache();
     initRegistrar();
-    renderResumen();
+    setTimeout(() => renderResumen(), 0);
     if (_returnToHistorialAfterGuardar) {
       _returnToHistorialAfterGuardar = null;
       _returnToHistorialAfterCancelar = null;
@@ -17055,7 +17082,7 @@ async function registrarTransferencia() {
   toast(`Transferencia registrada: ${desdeLabel} \u2192 ${haciaLabel} \u2713`, "ok");
   invalidateCache();
   initRegistrar();
-  renderResumen();
+  setTimeout(() => renderResumen(), 0);
   if (panelActual === "fondos") renderFondos();
   if (panelActual === "historial") {
     populateHistFilters();
@@ -25338,6 +25365,16 @@ function _collectRemoteSnapshot() {
   };
 }
 function _isCloudStrictMovsEnabled() {
+  if (_isRunningLocalApp()) {
+    try {
+      const qs = new URLSearchParams(location.search || "");
+      const raw = String(qs.get("cloudStrict") || "").trim().toLowerCase();
+      if (raw === "1" || raw === "true" || raw === "on") return true;
+      if (raw === "0" || raw === "false" || raw === "off") return false;
+    } catch (_e) {
+    }
+    return false;
+  }
   return LS.get("ec2_cloud_strict_movs", true) !== false;
 }
 let _cloudStrictMovsWriteNonce = 0;
