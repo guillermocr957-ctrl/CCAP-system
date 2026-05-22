@@ -8606,6 +8606,13 @@ function _clearAllPendingDeletedMovIds() {
   _setPendingDeletedMovIds([]);
 }
 function setMovs(v) {
+  if (_isCloudStrictMovsEnabled() && !_isApplyingRemoteSync) {
+    if (_cloudStrictMovsWriteNonce <= 0) {
+      toast("Proteccion activa: el cambio no se guardo porque no fue confirmado en Supabase.", "err");
+      return false;
+    }
+    _cloudStrictMovsWriteNonce = Math.max(0, _cloudStrictMovsWriteNonce - 1);
+  }
   _saveMovsBackupSnapshot(v, "setMovs");
   LS.set("ec2_movs", v);
   triggerAutoSyncMutation("movimientos");
@@ -8634,6 +8641,7 @@ function setMovs(v) {
     } catch (_e) {
     }
   }
+  return true;
 }
 function restaurarUltimoRespaldoMovs() {
   const backup = LS.get("ec2_movs_backup_latest", null);
@@ -13101,7 +13109,7 @@ function _regBuildAssocPayload(source, value) {
 function _regComputeIsPend(grupos, grupoCode) {
   return !!regPorConfirmar;
 }
-function registrar() {
+async function registrar() {
   var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
   const fecha = document.getElementById("reg-fecha").value;
   const monto = parseMonto(document.getElementById("reg-monto").value);
@@ -13271,7 +13279,14 @@ function registrar() {
       };
       return _syncRendicionStateOnMov(baseMov);
     });
-    setMovs([...movs, ...nuevos]);
+    const nextMovs = [...movs, ...nuevos];
+    try {
+      await _ensureCloudCommitMovs(nextMovs, editId ? "registrar-edit-multi" : "registrar-multi");
+    } catch (e) {
+      toast((e == null ? void 0 : e.message) || "No se pudo confirmar guardado en nube", "err");
+      return;
+    }
+    setMovs(nextMovs);
     codigoFinalToast = (nuevos[0] == null ? void 0 : nuevos[0].codigo) || codigo || "";
     if (editId) {
       (originalGroupMovs.length ? originalGroupMovs : [originalMov].filter(Boolean)).forEach((m) => deleteMovSheets(m.id));
@@ -13388,6 +13403,12 @@ function registrar() {
       } else {
         movs.push(movOperativo, movReembolso);
       }
+      try {
+        await _ensureCloudCommitMovs(movs, editId ? "registrar-edit-curia-split" : "registrar-curia-split");
+      } catch (e) {
+        toast((e == null ? void 0 : e.message) || "No se pudo confirmar guardado en nube", "err");
+        return;
+      }
       setMovs(movs);
       pushMovs([movOperativo, movReembolso]);
       codigoFinalToast = movOperativo.codigo || movReembolso.codigo || codigo || "";
@@ -13423,9 +13444,21 @@ function registrar() {
       } else {
         movs.push(movFinal);
       }
+      try {
+        await _ensureCloudCommitMovs(movs, "registrar-edit");
+      } catch (e) {
+        toast((e == null ? void 0 : e.message) || "No se pudo confirmar guardado en nube", "err");
+        return;
+      }
       setMovs(movs);
     } else {
       movs.push(movFinal);
+      try {
+        await _ensureCloudCommitMovs(movs, "registrar-new");
+      } catch (e) {
+        toast((e == null ? void 0 : e.message) || "No se pudo confirmar guardado en nube", "err");
+        return;
+      }
       setMovs(movs);
       if (replacingGroup) originalGroupMovs.forEach((m) => deleteMovSheets(m.id));
       pushMovs([movFinal]);
@@ -16816,7 +16849,7 @@ function _selectRegTransfer(side, value) {
     const triggerId = side === "desde" ? "transf-desde-trigger" : "transf-hacia-trigger";
     setTimeout(() => { const t = document.getElementById(triggerId); if (t) t.focus(); }, 50);
 }
-function registrarTransferencia() {
+async function registrarTransferencia() {
   var _a;
   const fecha = document.getElementById("reg-fecha").value;
   const monto = parseMonto(document.getElementById("reg-monto").value);
@@ -16888,6 +16921,12 @@ function registrarTransferencia() {
     entrada.destinoId = haciaId;
     entrada.ts = (/* @__PURE__ */ new Date()).toISOString();
     entrada.tsMs = Date.now();
+    try {
+      await _ensureCloudCommitMovs(movs, "transferencia-edit");
+    } catch (e) {
+      toast((e == null ? void 0 : e.message) || "No se pudo confirmar guardado en nube", "err");
+      return;
+    }
     setMovs(movs);
     const wasEdit = !!editId;
     editId = null;
@@ -16964,6 +17003,12 @@ function registrarTransferencia() {
     tsMs: Date.now()
   };
   movs.push(movSalida, movEntrada);
+  try {
+    await _ensureCloudCommitMovs(movs, "transferencia-new");
+  } catch (e) {
+    toast((e == null ? void 0 : e.message) || "No se pudo confirmar guardado en nube", "err");
+    return;
+  }
   setMovs(movs);
   pushMovs([movSalida, movEntrada]);
   toast(`Transferencia registrada: ${desdeLabel} \u2192 ${haciaLabel} \u2713`, "ok");
@@ -25113,6 +25158,24 @@ function _collectRemoteSnapshot() {
     },
     ts: (/* @__PURE__ */ new Date()).toISOString()
   };
+}
+function _isCloudStrictMovsEnabled() {
+  return LS.get("ec2_cloud_strict_movs", true) !== false;
+}
+let _cloudStrictMovsWriteNonce = 0;
+async function _ensureCloudCommitMovs(nextMovs, source = "movimientos") {
+  if (!_isCloudStrictMovsEnabled() || _isApplyingRemoteSync) return;
+  if (_getSyncProvider() !== "supabase") throw new Error("Modo nube obligatoria activo: cambia el proveedor a Supabase.");
+  if (!_hasSupabaseConfig()) throw new Error("Supabase no configurado. No se puede guardar en modo nube obligatoria.");
+  if (typeof navigator !== "undefined" && !navigator.onLine) throw new Error("Sin internet. En modo nube obligatoria no se guarda localmente.");
+  const user = await _getSupabaseUser(false);
+  if (!user) throw new Error("Inicia sesion en Supabase para guardar movimientos.");
+  const payload = _collectRemoteSnapshot();
+  payload.movimientos = Array.isArray(nextMovs) ? nextMovs : [];
+  payload.movimientos_eliminados = _getPendingDeletedMovIds();
+  await _supabasePushSnapshot(payload, source || "movimientos");
+  _cloudStrictMovsWriteNonce++;
+  LS.set("ec2_last_sync", (/* @__PURE__ */ new Date()).toISOString());
 }
 function _renderSyncProviderFields() {
   const provider = _getSyncProvider();
