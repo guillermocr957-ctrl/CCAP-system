@@ -22532,31 +22532,49 @@ function renderPlan() {
   let html = "";
   grupos.forEach((g, gi) => {
     if (g.pending) return;
+    const canUpGrupo = gi > 0;
+    const canDownGrupo = gi < grupos.length - 1;
+    const cuentas = g.cuentas || [];
     html += `<div class="card" style="margin-bottom:10px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
         <div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${g.code}</div>
         <div style="flex:1;font-size:16px;font-weight:500;color:${color}">${g.name}</div>
         <button class="btn btn-ghost btn-xs" onclick="openPlanItemModal('cuenta',${gi})">+ cuenta</button>
+        <button class="btn btn-ghost btn-xs" style="color:var(--muted2);${canUpGrupo ? "" : "opacity:.4;pointer-events:none"}" onclick="moveGrupo(${gi},-1)">↑</button>
+        <button class="btn btn-ghost btn-xs" style="color:var(--muted2);${canDownGrupo ? "" : "opacity:.4;pointer-events:none"}" onclick="moveGrupo(${gi},1)">↓</button>
         <button class="btn btn-ghost btn-xs" style="color:var(--muted2)" onclick="openPlanItemModal('editGrupo',${gi})">\u270E</button>
         <button class="btn btn-ghost btn-xs" style="color:var(--egr)" onclick="delGrupo(${gi})">\u2715</button>
       </div>
-      ${g.cuentas.map((c, ci) => `
+      ${cuentas.map((c, ci) => {
+        const canUpCuenta = ci > 0;
+        const canDownCuenta = ci < cuentas.length - 1;
+        const subs = c.subs || [];
+        return `
         <div style="border-top:1px solid var(--border)">
           <div style="padding:7px 0 7px 20px;display:flex;align-items:center;gap:8px">
             <div style="font-family:var(--mono);font-size:11px;color:var(--muted);width:36px">${c.code}</div>
-            <div style="flex:1;font-size:15px;font-weight:500">${c.name}${planTipo === "egreso" && !((c.subs || []).some((s) => String(s.code || "").trim())) ? `<span style="margin-left:8px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase">${_escHtml(String(c.modoDestino || "solo_perpetuos").replace("solo_", "").replace("_", " "))}</span>` : ""}</div>
+            <div style="flex:1;font-size:15px;font-weight:500">${c.name}${planTipo === "egreso" && !subs.some((s) => String(s.code || "").trim()) ? `<span style="margin-left:8px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase">${_escHtml(String(c.modoDestino || "solo_perpetuos").replace("solo_", "").replace("_", " "))}</span>` : ""}</div>
             <button class="btn btn-ghost btn-xs" style="color:var(--neu)" onclick="openPlanItemModal('sub',${gi},${ci})">+ sub</button>
+            <button class="btn btn-ghost btn-xs" style="color:var(--muted2);${canUpCuenta ? "" : "opacity:.4;pointer-events:none"}" onclick="moveCuenta(${gi},${ci},-1)">↑</button>
+            <button class="btn btn-ghost btn-xs" style="color:var(--muted2);${canDownCuenta ? "" : "opacity:.4;pointer-events:none"}" onclick="moveCuenta(${gi},${ci},1)">↓</button>
             <button class="btn btn-ghost btn-xs" style="color:var(--muted2)" onclick="openPlanItemModal('editCuenta',${gi},${ci})">\u270E</button>
             <button class="btn btn-ghost btn-xs" style="color:var(--egr)" onclick="delCuenta(${gi},${ci})">\u2715</button>
           </div>
-          ${(c.subs || []).map((s, si) => `
+          ${subs.map((s, si) => {
+            const canUpSub = si > 0;
+            const canDownSub = si < subs.length - 1;
+            return `
             <div style="padding:5px 0 5px 52px;display:flex;align-items:center;gap:8px;border-top:1px solid var(--border);background:var(--card2)">
               <div style="font-family:var(--mono);font-size:11px;color:var(--muted);width:40px">${s.code}</div>
               <div style="flex:1;font-size:14px;color:var(--muted2)">${s.name}${planTipo === "egreso" ? `<span style="margin-left:8px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase">${_escHtml(String(s.modoDestino || "solo_perpetuos").replace("solo_", "").replace("_", " "))}</span>` : ""}</div>
+              <button class="btn btn-ghost btn-xs" style="color:var(--muted2);font-size:9px;${canUpSub ? "" : "opacity:.4;pointer-events:none"}" onclick="moveSub(${gi},${ci},${si},-1)">↑</button>
+              <button class="btn btn-ghost btn-xs" style="color:var(--muted2);font-size:9px;${canDownSub ? "" : "opacity:.4;pointer-events:none"}" onclick="moveSub(${gi},${ci},${si},1)">↓</button>
               <button class="btn btn-ghost btn-xs" style="color:var(--muted2);font-size:9px" onclick="openPlanItemModal('editSub',${gi},${ci},${si})">\u270E</button>
               <button class="btn btn-ghost btn-xs" style="color:var(--egr);font-size:9px" onclick="delSub(${gi},${ci},${si})">\u2715</button>
-            </div>`).join("")}
-        </div>`).join("")}
+            </div>`;
+          }).join("")}
+        </div>`;
+      }).join("")}
     </div>`;
   });
   document.getElementById("plan-tree").innerHTML = html;
@@ -22752,6 +22770,45 @@ function delCuenta(gi, ci) {
 }
 function addSub(gi, ci) {
   openPlanItemModal("sub", gi, ci);
+}
+function moveGrupo(gi, delta) {
+  const p = getPlan();
+  const grupos = p[planTipo] || [];
+  const ni = gi + delta;
+  if (gi < 0 || ni < 0 || gi >= grupos.length || ni >= grupos.length) return;
+  [grupos[gi], grupos[ni]] = [grupos[ni], grupos[gi]];
+  setPlan(p);
+  renderPlan();
+  toast("Grupo reordenado", "ok");
+  const _u = LS.get("ec2_script_url", "");
+  if (_u) fetch(_u, { method: "POST", body: JSON.stringify({ action: "savePlan", plan: getPlan() }) }).catch(() => {
+  });
+}
+function moveCuenta(gi, ci, delta) {
+  const p = getPlan();
+  const cuentas = (((p || {})[planTipo] || [])[gi] || {}).cuentas || [];
+  const ni = ci + delta;
+  if (ci < 0 || ni < 0 || ci >= cuentas.length || ni >= cuentas.length) return;
+  [cuentas[ci], cuentas[ni]] = [cuentas[ni], cuentas[ci]];
+  setPlan(p);
+  renderPlan();
+  toast("Cuenta reordenada", "ok");
+  const _u = LS.get("ec2_script_url", "");
+  if (_u) fetch(_u, { method: "POST", body: JSON.stringify({ action: "savePlan", plan: getPlan() }) }).catch(() => {
+  });
+}
+function moveSub(gi, ci, si, delta) {
+  const p = getPlan();
+  const subs = (((((p || {})[planTipo] || [])[gi] || {}).cuentas || [])[ci] || {}).subs || [];
+  const ni = si + delta;
+  if (si < 0 || ni < 0 || si >= subs.length || ni >= subs.length) return;
+  [subs[si], subs[ni]] = [subs[ni], subs[si]];
+  setPlan(p);
+  renderPlan();
+  toast("Subcuenta reordenada", "ok");
+  const _u = LS.get("ec2_script_url", "");
+  if (_u) fetch(_u, { method: "POST", body: JSON.stringify({ action: "savePlan", plan: getPlan() }) }).catch(() => {
+  });
 }
 function delSub(gi, ci, si) {
   if (!confirm("\xBFEliminar esta subcuenta?")) return;
