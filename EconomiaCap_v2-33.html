@@ -25729,14 +25729,15 @@ function _restoreRegistrarDraft(draft) {
   } catch (_e) {
   }
 }
-function _applyRemoteSyncData(data) {
+function _applyRemoteSyncData(data, opts = {}) {
+  const notify = opts.notify !== false;
   const regDraft = _captureRegistrarDraft();
   if (Array.isArray(data == null ? void 0 : data.movimientos)) {
     const local = getMovs();
     if (local.length === 0 && data.movimientos.length > 0) {
       setMovs(data.movimientos);
       if (data.plan) setPlan(data.plan);
-      toast(`${data.movimientos.length} movimientos cargados desde remoto ✓`, "ok");
+      if (notify) toast(`${data.movimientos.length} movimientos cargados desde remoto ✓`, "ok");
     } else {
       const localById = new Map(local.map((m) => [String(m.id), m]));
       const remoteById = new Map((data.movimientos || []).map((m) => [String(m.id), m]));
@@ -25776,9 +25777,9 @@ function _applyRemoteSyncData(data) {
         if (eliminados) parts.push(`${eliminados} eliminados`);
         if (preservados) parts.push(`${preservados} preservados localmente`);
         if (dedupeRes.removed) parts.push(`${dedupeRes.removed} duplicados fusionados`);
-        toast(`Sincronizado: ${parts.join(" · ")} ✓`, "ok");
+        if (notify) toast(`Sincronizado: ${parts.join(" · ")} ✓`, "ok");
       } else {
-        toast("Todo sincronizado ✓", "ok");
+        if (notify) toast("Todo sincronizado ✓", "ok");
       }
     }
   }
@@ -25832,11 +25833,12 @@ async function _sincronizarAhoraSupabase() {
         ...remote,
         movimientos_eliminados: Array.from(new Set([...(Array.isArray(remote.movimientos_eliminados) ? remote.movimientos_eliminados : []), ...localDeletedIds]))
       };
-      _applyRemoteSyncData(mergedRemote);
+      _applyRemoteSyncData(mergedRemote, { notify: false });
     }
     await _supabasePushSnapshot(_collectRemoteSnapshot());
     _clearAllPendingDeletedMovIds();
     LS.set("ec2_last_sync", (/* @__PURE__ */ new Date()).toISOString());
+    toast("Sincronizacion completa ✓", "ok");
     if (msg) msg.textContent = "Ultima sync Supabase: " + (/* @__PURE__ */ new Date()).toLocaleString();
     updateSyncUI();
     invalidateCache();
