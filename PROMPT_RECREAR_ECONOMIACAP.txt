@@ -1,0 +1,286 @@
+PROMPT PARA RECREAR ECONOMIACAP
+================================
+Fecha: Mayo 2026
+
+Construye un sistema de contabilidad PWA en un solo archivo para una comunidad religiosa
+(Orden Capuchina). Sin frameworks — solo JavaScript vanilla, HTML5 y CSS3.
+Todo el estado en localStorage. Sincronización via Google Apps Script.
+
+
+================================================================================
+STACK TECNOLÓGICO
+================================================================================
+
+- Vanilla JS + HTML5 + CSS3 (un solo archivo .html + sw.js + manifest.json)
+- PWA: Service Worker, offline-first, instalable en iOS/Android/Escritorio
+- Importaciones dinámicas: XLSX (exportar Excel), html2pdf (exportar PDF)
+- Backend: Google Apps Script (POST/GET para sincronización en la nube)
+- Fuentes: Inter (UI), JetBrains Mono (códigos), Cormorant Garamond (títulos)
+
+
+================================================================================
+DISEÑO Y MAQUETACIÓN (Escritorio ≥1200px)
+================================================================================
+
+[ BARRA SUPERIOR: título | tasas FX | notificaciones ]
+[ BARRA LATERAL 252px | PANEL PRINCIPAL (scroll vertical, padding 24px) ]
+[ PIE DE BARRA LATERAL: cambio de tema | estado de sincronización ]
+
+- Responsive: la barra lateral se colapsa en móvil
+- En móvil se usan "bottom sheets" en lugar de modales para selectores
+- Safe area de iPhone: env(safe-area-inset-*) en barra lateral y pies de página
+- Meta tag: viewport-fit=cover
+
+
+================================================================================
+MODELOS DE DATOS PRINCIPALES (localStorage, todos con id + ts timestamp)
+================================================================================
+
+MOVIMIENTO
+  - tipo: 'ingreso' | 'egreso' | 'transferencia'
+  - fecha: 'YYYY-MM-DD'
+  - monto: número
+  - moneda: 'PEN' | 'USD' | 'EUR'
+  - cuentaPago: id de la cuenta
+  - gCode, cCode, sCode: clasificación contable (3 niveles: grupo → cuenta → subcuenta)
+  - codigo: código autogenerado (ej. ING-2604-001)
+  - multiGroupId: id de grupo para movimientos multilinea
+  - multiLineIndex: número de línea dentro del grupo
+  - isPend: boolean (pendiente de confirmación)
+  - boleta: 'si' | 'no'
+  - curia: boolean
+  - curiaCobrado: boolean
+  - fondoId, proyectoId, colectaId, capillaId, capellaniaId, vehiculo: asociaciones opcionales
+  - ts: ISO string
+  - tsMs: milisegundos
+  - bloqueado: boolean
+
+CUENTA
+  - label: nombre
+  - tipo: 'bancaria' | 'efectivo' | 'billetera'
+  - moneda: 'PEN' | 'USD' | 'EUR'
+  - saldoInicial: número
+  - banco: string
+  - finPay: 'yape' | 'plin' | null
+  - finPayNum: teléfono/número asociado
+  - color: hex
+
+PLAN CONTABLE
+  - Árbol jerárquico: grupo → cuenta → subcuenta
+  - Árboles separados para ingreso y egreso
+  - Cada nodo: { code, name, [cuentas/subs] }
+
+FONDO
+  - nombre, tipo, saldoInicial, meta (meta opcional), color
+
+PROYECTO
+  - nombre, descripcion
+
+COLECTA
+  - nombre
+
+PERSONA
+  - nombre
+  - tipo: 'hermano' | 'trabajador'
+  - cargo, notas
+
+RECORDATORIO
+  - titulo, desc, fecha ('YYYY-MM-DD'), hora ('HH:MM')
+  - prioridad: 'normal' | 'importante' | 'urgente'
+  - repetir: 'nunca' | 'diaria' | 'semanal' | 'mensual'
+  - notif: boolean
+  - completado: boolean
+  - fechaCreacion: ISO string
+
+
+================================================================================
+VISTAS (navegación en barra lateral)
+================================================================================
+
+1. RESUMEN (Dashboard)
+   - Tarjetas KPI: balance total por moneda, ingresos/egresos del mes
+   - Últimas transacciones
+   - Desglose mensual
+
+2. REGISTRAR (Formulario de ingreso de movimientos)
+   - Campos: tipo, fecha, monto, moneda, cuenta de pago
+   - Selector de clasificación contable en 3 niveles (grupo → cuenta → subcuenta)
+   - Descripción, código autogenerado
+   - Flags: boleta, curia, isPend (por confirmar)
+   - Asociaciones opcionales: fondo, proyecto, colecta, persona, vehículo
+   - Soporte multilinea: un comprobante dividido en N categorías con multiGroupId
+   - Sugerencias de categorías (últimas usadas / más frecuentes)
+   - Atajo de teclado: Cmd+Enter / Ctrl+Enter para guardar
+   - En escritorio: selector de categorías en modal overlay
+   - En móvil: selector en bottom sheet
+
+3. HISTORIAL
+   - Tabla colapsable por mes → día
+   - Columnas: código, tipo, categoría, cuenta, monto, descripción, badges de estado
+   - Badges: curia / cobrado / pendiente / bloqueado / sin boleta / por confirmar
+   - Edición inline de categoría y cuenta (click en la celda)
+   - Quick-edit: abre el formulario de Registrar
+   - Expansión de grupos multilinea
+   - Filtros: tipo, cuenta, rango de fechas
+   - Totales por mes y por día (ingresos / egresos / neto)
+   - Estado de colapsado persistido en localStorage
+
+4. CUENTAS
+   - CRUD de cuentas
+   - Saldo calculado: saldoInicial + movimientos
+   - Historial de movimientos por cuenta
+   - Reconciliación de saldo
+   - Indicador de canal (Yape/Plin) en los movimientos
+
+5. FONDOS
+   - CRUD de fondos
+   - Vista mensual colapsable: ingresos / egresos / neto por mes
+   - Barra de progreso si tiene meta definida
+   - Desde un fondo se puede registrar movimiento directamente
+
+6. HERMANOS / TRABAJADORES
+   - Directorio en vista de widgets (grilla)
+   - Badge con movimientos recientes
+   - Modal de detalle con información completa y movimientos asociados
+   - Búsqueda y filtro
+
+7. PROYECTOS / COLECTAS / SERVICIOS / VEHÍCULOS / CAPILLAS / CAPELLANÍAS
+   - Estructura similar: CRUD + listado de movimientos asociados
+   - Vista de detalle con balance propio
+
+8. REPORTES
+   - Gráfico de torta SVG animado con transiciones morfológicas
+   - Drill-down: grupo → cuenta → subcuenta (con botón volver)
+   - Tabs: Ingresos / Egresos
+   - Períodos: mensual, trimestral, anual, rango personalizado
+   - Filtro por moneda (PEN / USD / EUR)
+   - Excluye movimientos con isPend=true
+   - Exportar a PDF (html2pdf) y a Excel (XLSX)
+   - Modo presentación: pantalla completa + UI limpia
+
+9. RECORDATORIOS
+   - CRUD de recordatorios
+   - Lista con indicador visual de prioridad
+   - Notificaciones locales (Notification API)
+   - Soporte de recurrencia
+   - Marcado como completado
+
+10. IMPORTAR / EXPORTAR
+    - Importación CSV/Excel con vista previa antes de confirmar
+    - Detección de duplicados (por código/fecha/monto/descripción)
+    - Edición de campos individuales en vista previa
+    - CSV de errores descargable
+    - Exportación de movimientos a Excel via XLSX
+    - Descarga de plantilla en blanco
+    - Historial de operaciones de importación/exportación
+
+
+================================================================================
+LÓGICA CLAVE
+================================================================================
+
+GENERACIÓN DE CÓDIGOS
+  - Formato: ING-YYMM-NNN / EGR-YYMM-NNN / PND-YYMM-NNN
+  - Numeración cronológica por mes (001, 002, 003...)
+  - Función migrarCodigos() se ejecuta una vez al cargar para datos legacy
+  - Detección de duplicados para no repetir códigos
+
+MOVIMIENTOS MULTILINEA (multicategoría)
+  - Un comprobante se divide en N líneas con el mismo multiGroupId
+  - Cada línea tiene su propio gCode/cCode/sCode y monto parcial
+  - La suma de los montos parciales debe igualar el monto total
+  - En el historial se muestran colapsados/expandibles
+
+SINCRONIZACIÓN (merge no destructivo)
+  - POST del diff a Google Apps Script cada 5 minutos (startAutoSync())
+  - Trigger manual desde la UI
+  - Protocolo de tombstones para los registros eliminados
+  - triggerAutoSyncMutation(type) en cada mutación de datos
+  - Estado de sync visible en la barra lateral
+
+WIDGET FX (tasas de cambio)
+  - La barra superior muestra tasas PEN/USD y PEN/EUR
+  - Fetch periódico con valor de respaldo (fallback) hardcodeado
+
+TEMAS (claro / oscuro)
+  - CSS variables completo con dos paletas
+  - Selector: [data-theme="dark"] en el elemento <html>
+  - Toggle en el pie de la barra lateral
+  - Guardado en localStorage (clave: ec2_tema)
+
+
+================================================================================
+CONVENCIONES DE INTERFAZ
+================================================================================
+
+TOASTS
+  - Función: toast(mensaje, tipo, duracion)
+  - Tipos: 'ok' (verde), 'err' (rojo), 'warn' (amarillo), 'info' (azul)
+  - Auto-cierre: 1500–3000ms
+
+MODALES
+  - .modal-overlay.open + .modal
+  - Botón cerrar (✕) en cabecera
+  - Footer con botones de acción
+  - Escape para cerrar
+  - Ancho máximo: 420px–920px según tipo
+
+BOTTOM SHEETS (móvil)
+  - Posición fija al fondo en pantallas <1200px
+  - Handle arrastrable en la parte superior
+  - Fondo con blur backdrop
+  - Animaciones suaves
+
+BOTONES
+  - .btn-primary: gradiente azul, sombra elevada
+  - .btn-egr: gradiente rojo (egresos)
+  - .btn-sec: fondo claro secundario
+  - .btn-ghost: transparente con borde
+  - .btn-sm, .btn-xs: variantes de tamaño
+  - Altura mínima 40px en móvil (touch-friendly)
+
+TARJETAS
+  - .card: fondo claro con borde azul y sombra sutil
+  - .stat-card: más grande, con overlay de gradiente decorativo
+  - .fondo-widget, .persona-widget: tarjetas especializadas
+  - Efecto de elevación al hacer hover
+
+VARIABLES CSS PRINCIPALES
+  --bg, --surface, --card, --card2    (fondos)
+  --text, --muted, --muted2           (textos)
+  --border, --border2                 (bordes)
+  --neu, --neu-dark, --neu-bg         (azul primario)
+  --ing, --ing-bg                     (verde ingresos)
+  --egr, --egr-bg                     (rojo egresos)
+  --warn, --warn-bg                   (amarillo advertencia)
+  --trn, --trn-bg                     (gris transferencias)
+  --radius, --radius-md, --radius-lg  (bordes redondeados)
+  --shadow                            (sombra general)
+  --sidebar-w: 252px
+  --app-h: 100dvh
+
+
+================================================================================
+ARQUITECTURA DE ARCHIVOS
+================================================================================
+
+EconomiaCap.html     → App completa (HTML + CSS + JS en un solo archivo)
+sw.js                → Service Worker para caché offline
+manifest.json        → Manifiesto PWA (iconos, nombre, colores, display: standalone)
+assets/logos/        → Iconos de la app en distintos tamaños
+
+
+================================================================================
+NOTAS ADICIONALES
+================================================================================
+
+- El plan contable tiene categorías propias de una comunidad religiosa:
+  limosnas, diezmos, misas, haberes del personal, gastos de transporte, etc.
+- Soporte para "Curia": movimientos que se transfieren a la curia provincial,
+  con flag de si ya fueron cobrados (curiaCobrado)
+- Los movimientos "por confirmar" (isPend) no se incluyen en los reportes
+  hasta que sean confirmados
+- El historial guarda el estado de colapsado/expandido por mes y día
+  en localStorage para preservarlo entre sesiones
+- El sistema soporta múltiples monedas por cuenta pero los reportes
+  agrupan por moneda por separado

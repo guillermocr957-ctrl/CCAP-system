@@ -1,0 +1,6 @@
+Código,Fecha,Tipo,Moneda,Monto,Grupo,Cuenta,Subcuenta,Descripción,Cuenta pago,Boleta,Curia,Pendiente cuentas
+,2026-04-23,ingreso,PEN,5000,01,0101,010101,Ofrenda del domingo,,si,No,No
+,2026-04-22,egreso,PEN,1500,02,0205,020501,Pago servicios básicos,,no,No,No
+,2026-04-21,transferencia,PEN,2000,,,,,Transferencia entre fondos,,no,No,No
+,2026-04-20,ingreso,USD,1200,01,0102,,Donación internacional,,si,No,No
+,2026-04-19,egreso,PEN,800,03,0301,030101,Compra de materiales,,no,Sí,No
