@@ -13651,7 +13651,7 @@ function copiarCodigo() {
   const code = document.getElementById("reg-code").textContent;
   (_a = navigator.clipboard) == null ? void 0 : _a.writeText(code).then(() => toast("C\xF3digo copiado"));
 }
-function eliminar(id, opts) {
+async function eliminar(id, opts) {
   const options = opts && typeof opts === "object" ? opts : {};
   const skipConfirm = !!options.skipConfirm;
   const all = getMovs();
@@ -13672,6 +13672,12 @@ function eliminar(id, opts) {
   }
   const ids = new Set(toDelete.map((m) => String(m.id)));
   const movs = all.filter((m) => !ids.has(String(m.id)));
+  try {
+    await _ensureCloudCommitMovs(movs, "trash-delete");
+  } catch (e) {
+    toast((e == null ? void 0 : e.message) || "No se pudo confirmar eliminacion en nube", "err");
+    return;
+  }
   const trash = getTrashMovs();
   setMovs(movs);
   setTrashMovs([...trash, ...toDelete]);
@@ -13735,13 +13741,20 @@ function openTrashModal() {
   renderTrashModalBody();
   openModal("modal-trash");
 }
-function restaurarMovimiento(id) {
+async function restaurarMovimiento(id) {
   const idNorm = String(id);
   const trash = getTrashMovs();
   const mov = trash.find((m) => String(m.id) === idNorm);
   if (!mov) return;
+  const nextMovs = [...getMovs(), mov];
+  try {
+    await _ensureCloudCommitMovs(nextMovs, "trash-restore");
+  } catch (e) {
+    toast((e == null ? void 0 : e.message) || "No se pudo confirmar restauracion en nube", "err");
+    return;
+  }
   setTrashMovs(trash.filter((m) => String(m.id) !== idNorm));
-  setMovs([...getMovs(), mov]);
+  setMovs(nextMovs);
   pushMovs([mov]);
   invalidateCache();
   updateTrashSidebarBadge();
