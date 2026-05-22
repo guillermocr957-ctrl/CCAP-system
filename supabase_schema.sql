@@ -105,6 +105,96 @@ on public.ec2_user_snapshots (updated_at desc);
 create index if not exists ec2_user_snapshots_deleted_at_idx
 on public.ec2_user_snapshots (deleted_at);
 
+create table if not exists public.ec2_user_snapshot_versions (
+  id bigserial primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  payload jsonb not null default '{}'::jsonb,
+  source text not null default 'sync',
+  snapshot_updated_at timestamptz not null default now(),
+  created_at timestamptz not null default now(),
+  created_by uuid references auth.users (id) on delete set null,
+  deleted_at timestamptz,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.ec2_user_snapshot_versions enable row level security;
+
+drop trigger if exists ec2_user_snapshot_versions_audit_tg on public.ec2_user_snapshot_versions;
+create trigger ec2_user_snapshot_versions_audit_tg
+before insert or update on public.ec2_user_snapshot_versions
+for each row
+execute function public.ec2_set_audit_fields();
+
+drop policy if exists "ec2_user_snapshot_versions_select_own" on public.ec2_user_snapshot_versions;
+create policy "ec2_user_snapshot_versions_select_own"
+on public.ec2_user_snapshot_versions
+for select
+using (auth.uid() = user_id and deleted_at is null);
+
+drop policy if exists "ec2_user_snapshot_versions_insert_own" on public.ec2_user_snapshot_versions;
+create policy "ec2_user_snapshot_versions_insert_own"
+on public.ec2_user_snapshot_versions
+for insert
+with check (auth.uid() = user_id and deleted_at is null);
+
+drop policy if exists "ec2_user_snapshot_versions_update_own" on public.ec2_user_snapshot_versions;
+drop policy if exists "ec2_user_snapshot_versions_delete_own" on public.ec2_user_snapshot_versions;
+
+create index if not exists ec2_user_snapshot_versions_user_created_idx
+on public.ec2_user_snapshot_versions (user_id, created_at desc);
+
+create index if not exists ec2_user_snapshot_versions_deleted_at_idx
+on public.ec2_user_snapshot_versions (deleted_at);
+
+create or replace function public.ec2_save_snapshot(
+  p_payload jsonb,
+  p_source text default 'sync'
+)
+returns void
+language plpgsql
+security invoker
+set search_path = public
+as $$
+declare
+  v_user_id uuid;
+  v_source text;
+  v_last_payload jsonb;
+  v_now timestamptz;
+begin
+  v_user_id := auth.uid();
+  if v_user_id is null then
+    raise exception 'not authenticated';
+  end if;
+
+  v_source := left(coalesce(nullif(trim(p_source), ''), 'sync'), 40);
+  v_now := now();
+
+  insert into public.ec2_user_snapshots (user_id, payload, deleted_at, updated_at)
+  values (v_user_id, p_payload, null, v_now)
+  on conflict (user_id)
+  do update
+     set payload = excluded.payload,
+         deleted_at = null,
+         updated_at = v_now;
+
+  select v.payload
+    into v_last_payload
+    from public.ec2_user_snapshot_versions v
+   where v.user_id = v_user_id
+     and v.deleted_at is null
+   order by v.created_at desc
+   limit 1;
+
+  if v_last_payload is distinct from p_payload then
+    insert into public.ec2_user_snapshot_versions (user_id, payload, source, snapshot_updated_at, deleted_at, updated_at)
+    values (v_user_id, p_payload, v_source, v_now, null, v_now);
+  end if;
+end;
+$$;
+
+revoke all on function public.ec2_save_snapshot(jsonb, text) from public;
+grant execute on function public.ec2_save_snapshot(jsonb, text) to authenticated;
+
 do $$
 begin
   if not exists (select 1 from pg_type where typname = 'ec2_app_role') then
