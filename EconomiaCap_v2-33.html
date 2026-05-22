@@ -6855,7 +6855,7 @@ function registrarFondeoFondo() {
   }
   toast(`${validas} transferencia(s) de fondeo registrada(s)`, "ok");
 }
-function eliminarFondo(id) {
+async function eliminarFondo(id) {
   const idStr = String(id);
   const f = getFondos().find((f2) => String(f2.id) === idStr);
   if (!f) return;
@@ -6866,7 +6866,14 @@ Tambi\xE9n se eliminar\xE1n ${vinculados.length} movimiento(s) asociados.` : `\x
   if (!confirm(confirmMsg)) return;
   if (vinculados.length) {
     const ids = new Set(vinculados.map((m) => String(m.id)));
-    setMovs(getMovs().filter((m) => !ids.has(String(m.id))));
+    const nextMovs = getMovs().filter((m) => !ids.has(String(m.id)));
+    try {
+      await _ensureCloudCommitMovs(nextMovs, "delete-fondo");
+    } catch (e) {
+      toast((e == null ? void 0 : e.message) || "No se pudo confirmar eliminacion en nube", "err");
+      return;
+    }
+    setMovs(nextMovs);
     vinculados.forEach((m) => deleteMovSheets(m.id));
   }
   setFondos(getFondos().filter((f2) => String(f2.id) !== idStr));
@@ -7165,7 +7172,7 @@ function guardarProyecto() {
   renderProyectos();
   pushConfig();
 }
-function eliminarProyecto(id) {
+async function eliminarProyecto(id) {
   const idStr = String(id);
   const p = getProyectos().find((p2) => String(p2.id) === idStr);
   if (!p) return;
@@ -7176,7 +7183,14 @@ Tambi\xE9n se eliminar\xE1n ${vinculados.length} movimiento(s) asociados.` : `\x
   if (!confirm(confirmMsg)) return;
   if (vinculados.length) {
     const ids = new Set(vinculados.map((m) => String(m.id)));
-    setMovs(getMovs().filter((m) => !ids.has(String(m.id))));
+    const nextMovs = getMovs().filter((m) => !ids.has(String(m.id)));
+    try {
+      await _ensureCloudCommitMovs(nextMovs, "delete-proyecto");
+    } catch (e) {
+      toast((e == null ? void 0 : e.message) || "No se pudo confirmar eliminacion en nube", "err");
+      return;
+    }
+    setMovs(nextMovs);
     vinculados.forEach((m) => deleteMovSheets(m.id));
   }
   setProyectos(getProyectos().filter((p2) => String(p2.id) !== idStr));
@@ -7413,7 +7427,7 @@ function guardarCapilla() {
   populateCapillas("reg-capilla");
   pushConfig();
 }
-function eliminarCapilla(id) {
+async function eliminarCapilla(id) {
   const idStr = String(id);
   const c = getCapillas().find((c2) => String(c2.id) === idStr);
   if (!c) return;
@@ -7424,7 +7438,14 @@ Tambi\xE9n se eliminar\xE1n ${vinculados.length} movimiento(s) asociados.` : `\x
   if (!confirm(confirmMsg)) return;
   if (vinculados.length) {
     const ids = new Set(vinculados.map((m) => String(m.id)));
-    setMovs(getMovs().filter((m) => !ids.has(String(m.id))));
+    const nextMovs = getMovs().filter((m) => !ids.has(String(m.id)));
+    try {
+      await _ensureCloudCommitMovs(nextMovs, "delete-capilla");
+    } catch (e) {
+      toast((e == null ? void 0 : e.message) || "No se pudo confirmar eliminacion en nube", "err");
+      return;
+    }
+    setMovs(nextMovs);
     vinculados.forEach((m) => deleteMovSheets(m.id));
   }
   setCapillas(getCapillas().filter((c2) => String(c2.id) !== idStr));
@@ -7584,7 +7605,7 @@ function guardarCapellania() {
   populateCapellanias("reg-capellania");
   pushConfig();
 }
-function eliminarCapellania(id) {
+async function eliminarCapellania(id) {
   const idStr = String(id);
   const c = getCapellanias().find((c2) => String(c2.id) === idStr);
   if (!c) return;
@@ -7595,7 +7616,14 @@ Tambi\xE9n se eliminar\xE1n ${vinculados.length} movimiento(s) asociados.` : `\x
   if (!confirm(confirmMsg)) return;
   if (vinculados.length) {
     const ids = new Set(vinculados.map((m) => String(m.id)));
-    setMovs(getMovs().filter((m) => !ids.has(String(m.id))));
+    const nextMovs = getMovs().filter((m) => !ids.has(String(m.id)));
+    try {
+      await _ensureCloudCommitMovs(nextMovs, "delete-capellania");
+    } catch (e) {
+      toast((e == null ? void 0 : e.message) || "No se pudo confirmar eliminacion en nube", "err");
+      return;
+    }
+    setMovs(nextMovs);
     vinculados.forEach((m) => deleteMovSheets(m.id));
   }
   setCapellanias(getCapellanias().filter((c2) => String(c2.id) !== idStr));
@@ -19197,17 +19225,26 @@ function editarCuenta(id) {
   document.getElementById("cuenta-saldo-inicial").value = saldoShow ? formatMontoInput(String(saldoShow)) : "";
   openModal("modal-cuenta");
 }
-function eliminarCuenta(id) {
+async function eliminarCuenta(id) {
   const idStr = String(id);
   const c = getCuentas().find((c2) => String(c2.id) === idStr);
   if (!c) return;
   if (!confirm(`\xBFEliminar la cuenta "${c.label}"?
 
 Los movimientos asociados a esta cuenta se eliminar\xE1n tambi\xE9n.`)) return;
+  const allMovs = getMovs();
+  const movs = allMovs.filter((m) => String(m.cuentaPago) !== idStr);
+  if (movs.length !== allMovs.length) {
+    try {
+      await _ensureCloudCommitMovs(movs, "delete-cuenta");
+    } catch (e) {
+      toast((e == null ? void 0 : e.message) || "No se pudo confirmar eliminacion en nube", "err");
+      return;
+    }
+  }
   const extra = LS.get("ec2_cuentas_extra", []).filter((e) => String(e.id) !== idStr);
   LS.set("ec2_cuentas_extra", extra);
-  const movs = getMovs().filter((m) => String(m.cuentaPago) !== idStr);
-  setMovs(movs);
+  if (movs.length !== allMovs.length) setMovs(movs);
   const base = CUENTAS_BASE.find((b) => String(b.id) === idStr);
   if (base) {
     const del = LS.get("ec2_cuentas_del", []);
@@ -19308,7 +19345,7 @@ function guardarColecta() {
   renderColectas();
   pushConfig();
 }
-function eliminarColecta(id) {
+async function eliminarColecta(id) {
   const idStr = String(id);
   const c = getColectas().find((c2) => String(c2.id) === idStr);
   if (!c) return;
@@ -19319,7 +19356,14 @@ Tambi\xE9n se eliminar\xE1n ${vinculados.length} movimiento(s) asociados.` : `\x
   if (!confirm(confirmMsg)) return;
   if (vinculados.length) {
     const ids = new Set(vinculados.map((m) => String(m.id)));
-    setMovs(getMovs().filter((m) => !ids.has(String(m.id))));
+    const nextMovs = getMovs().filter((m) => !ids.has(String(m.id)));
+    try {
+      await _ensureCloudCommitMovs(nextMovs, "delete-colecta");
+    } catch (e) {
+      toast((e == null ? void 0 : e.message) || "No se pudo confirmar eliminacion en nube", "err");
+      return;
+    }
+    setMovs(nextMovs);
     vinculados.forEach((m) => deleteMovSheets(m.id));
   }
   setColectas(getColectas().filter((c2) => String(c2.id) !== idStr));
