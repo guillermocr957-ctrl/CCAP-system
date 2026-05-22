@@ -6094,6 +6094,7 @@ input.histd-row-select{
           <div class="sync-actions-grid">
             <button class="btn btn-sm sync-unified-btn" onclick="guardarURL()">Guardar y conectar</button>
             <button class="btn btn-sm sync-unified-btn" onclick="sincronizarAhora()">Sincronizar ahora</button>
+            <button class="btn btn-sm sync-unified-btn" onclick="openSupabaseVersionsModal()">🕘 Recuperar version</button>
             <button class="btn btn-sm sync-unified-btn" onclick="importarDesdeSheets()">⬇ Importar desde remoto</button>
             <button class="btn btn-sm sync-unified-btn" onclick="migrarAppsScriptASupabase()">⇢ Migrar Apps Script a Supabase</button>
             <button class="btn btn-sm sync-unified-btn" onclick="restaurarUltimoRespaldoMovs()">↺ Restaurar respaldo local</button>
@@ -6166,6 +6167,22 @@ input.histd-row-select{
         <div class="modal-footer">
           <button class="btn btn-primary" onclick="saveSupabaseSecretsFromModal()">Guardar</button>
           <button class="btn btn-ghost" onclick="closeModal('modal-supabase-secrets')">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-supabase-versions" onclick="if(event.target===this)closeModal('modal-supabase-versions')">
+      <div class="modal" style="max-width:680px;max-height:86vh;display:flex;flex-direction:column;padding:0;overflow:hidden">
+        <div class="modal-header" style="margin:0">
+          <div class="modal-title">Recuperar version de respaldo</div>
+          <button class="modal-close" onclick="closeModal('modal-supabase-versions')">✕</button>
+        </div>
+        <div style="padding:14px 16px 0 16px;font-size:12px;color:var(--muted)">Elige una version por fecha para restaurar tu informacion. Esto no borra tu historial, solo crea un nuevo estado restaurado.</div>
+        <div id="supabase-versions-status" class="sync-status-msg" style="margin:12px 16px 10px 16px">Cargando versiones...</div>
+        <div id="supabase-versions-list" style="padding:0 16px 16px 16px;overflow:auto;display:grid;gap:8px;max-height:52vh"></div>
+        <div class="modal-footer" style="margin:0">
+          <button class="btn btn-sm sync-unified-btn" onclick="reloadSupabaseVersions()">Actualizar lista</button>
+          <button class="btn btn-ghost" onclick="closeModal('modal-supabase-versions')">Cerrar</button>
         </div>
       </div>
     </div>
@@ -7476,38 +7493,7 @@ function verDetalleCapilla(capillaId) {
   if (!movs.length) {
     movsEl.innerHTML = `<div style="text-align:center;padding:30px;color:var(--muted);font-size:13px">Sin movimientos registrados para esta capilla.</div>`;
   } else {
-    const byMonth = {};
-    movs.forEach((m) => {
-      const raw = m.fecha ? m.fecha.includes("T") ? m.fecha.slice(0, 10) : m.fecha : "sin-fecha";
-      const month = raw && raw.length >= 7 ? raw.slice(0, 7) : "sin-fecha";
-      if (!byMonth[month]) byMonth[month] = [];
-      byMonth[month].push(m);
-    });
-    const months = Object.keys(byMonth).sort();
-    movsEl.innerHTML = months.slice().reverse().map((month) => {
-      const rows = byMonth[month].map((m) => {
-        const v = parseFloat(m.monto) || 0;
-        const esIng = m.tipo === "ingreso" || m.tipo === "transferencia" && m.subTipo === "entrada";
-        const tipoClass = m.tipo === "transferencia" ? "trn" : esIng ? "ing" : "egr";
-        const icon = m.tipo === "transferencia" ? "\u21C4" : esIng ? "\u2191" : "\u2193";
-        const signo = m.tipo === "transferencia" ? m.subTipo === "entrada" ? "+" : "\u2212" : esIng ? "+" : "\u2212";
-        const montoColor = tipoClass === "trn" ? "var(--trn)" : tipoClass === "ing" ? "var(--ing)" : "var(--egr)";
-        return `<div class="fondo-mov-item" onclick="mostrarMovPopoverCapilla(event, ${jsArg(m.id)})"><div class="fondo-mov-tipo ${tipoClass}">${icon}</div><div class="fondo-mov-desc">${m.desc || "Sin descripci\xF3n"}</div><div class="fondo-mov-fecha">${fmtFechaCorta ? fmtFechaCorta(m.fecha) : (m.fecha || "").slice(0, 10)}</div><div class="fondo-mov-monto" style="color:${montoColor}">${signo}${fmt(v, moneda)}</div></div>`;
-      }).join("");
-      const label = month === "sin-fecha" ? "Sin fecha" : fmtMes(month);
-      const monthIng = byMonth[month].reduce((acc, m) => {
-        const v = parseFloat(m.monto) || 0;
-        if (_movEsIngresoOperativo(m)) acc += v;
-        return acc;
-      }, 0);
-      const monthEgr = byMonth[month].reduce((acc, m) => {
-        const v = parseFloat(m.monto) || 0;
-        if (_movEsEgresoOperativo(m)) acc += v;
-        return acc;
-      }, 0);
-      const mesId = "capilla-mes-" + month.replace(/[^a-zA-Z0-9]/g, "-");
-      return `<div class="fondo-mes-block"><button class="fondo-mes-toggle" onclick="toggleCapillaMes('${mesId}')"><div class="fondo-mes-title">${label}</div><div class="fondo-mes-summary" style="display:flex;gap:8px">${monthIng ? `<span class="fondo-mes-badge ing">+${fmt(monthIng, moneda)}</span>` : ""}${monthEgr ? `<span class="fondo-mes-badge egr">\u2212${fmt(monthEgr, moneda)}</span>` : ""}</div><span id="${mesId}-tog" class="fondo-mes-toggle-icon">\u25BE</span></button><div id="${mesId}" class="fondo-mes-body" style="display:none">${rows}</div></div>`;
-    }).join("");
+    renderWidgetHistorialConFiltros("capilla-movimientos", movs);
   }
   const totalesEl = document.getElementById("capilla-mov-totales");
   if (totalesEl) {
@@ -10501,6 +10487,7 @@ function initRegistrar() {
     }
     document.getElementById("reg-monto").value = "";
     document.getElementById("reg-desc").value = "";
+    ["reg-grupo", "reg-cuenta", "reg-sub"].forEach((id) => _setSelectValue(id, ""));
     _clearRegAssociationInputs();
     _syncRegMultiButton();
     const titleEl = document.getElementById("reg-panel-title");
@@ -10534,6 +10521,17 @@ function initRegistrar() {
   _setupRegClassSync();
   _setupRegAssocSync();
   _setupRegistrarKeyboardShortcuts();
+  if (!editId) {
+    const gSel = document.getElementById("reg-grupo");
+    const cSel = document.getElementById("reg-cuenta");
+    const sSel = document.getElementById("reg-sub");
+    if (gSel) gSel.value = "";
+    if (cSel) cSel.value = "";
+    if (sSel) sSel.value = "";
+    _syncRegPlanSearchFromSelectors();
+    _syncRegDestinoContableUI();
+    updateRegCode();
+  }
   _syncRegClassSummary();
   _syncRegDestinoContableUI();
   _syncRegAssocSummary();
@@ -12105,7 +12103,8 @@ function _regIconSvg(icon) {
     map: '<svg viewBox="0 0 24 24"><path d="M9 18 3 21V6l6-3 6 3 6-3v15l-6 3-6-3z"></path><path d="M9 3v15"></path><path d="M15 6v15"></path></svg>',
     layers: '<svg viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7l10-5z"></path><path d="m2 12 10 5 10-5"></path><path d="m2 17 10 5 10-5"></path></svg>',
     folder: '<svg viewBox="0 0 24 24"><path d="M3 6a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z"></path></svg>',
-    tag: '<svg viewBox="0 0 24 24"><path d="M20 12 12 20l-8-8V4h8l8 8z"></path><circle cx="8.5" cy="8.5" r="1.5"></circle></svg>'
+    tag: '<svg viewBox="0 0 24 24"><path d="M20 12 12 20l-8-8V4h8l8 8z"></path><circle cx="8.5" cy="8.5" r="1.5"></circle></svg>',
+    unlink: '<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"></path><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"></path><path d="m8 8 8 8"></path></svg>'
   };
   return map[icon] || map.folder;
 }
@@ -12221,6 +12220,16 @@ function _applyRegAssociation(source, value) {
   _setRegNextFocusAfterSheetClose("btn-registrar");
   closeRegAssocPicker();
 }
+function _clearRegAssociationFromPicker() {
+  ["reg-hermano", "reg-trabajador", "reg-proyecto", "reg-fondo", "reg-colecta", "reg-servicio", "reg-vehiculo-link", "reg-capilla", "reg-capellania"].forEach((id) => _setSelectValue(id, ""));
+  const lim = document.getElementById("reg-limosna");
+  const des = document.getElementById("reg-despacho");
+  if (lim) lim.value = "";
+  if (des) des.value = "";
+  _syncRegAssocSummary();
+  _setRegNextFocusAfterSheetClose("btn-registrar");
+  closeRegAssocPicker();
+}
 function _selectedText(selectId) {
   var _a, _b;
   const sel = document.getElementById(selectId);
@@ -12270,8 +12279,7 @@ function _syncRegClassSummary() {
   if (!el) return;
   const s = _selectedText("reg-sub");
   const c = _selectedText("reg-cuenta");
-  const g = _selectedText("reg-grupo");
-  el.textContent = s || c || g || "Sin clasificaci\xF3n";
+  el.textContent = s || c || "Sin clasificaci\xF3n";
 }
 function _setupRegClassSync() {
   if (_regClassBound) return;
@@ -12579,6 +12587,7 @@ function closeRegAssocPicker() {
   _consumeRegNextFocusAfterSheetClose();
 }
 function regAssocBack() {
+  _regAssocCurrentSource = "";
   renderRegAssocPicker();
 }
 function renderRegAssocPicker() {
@@ -12592,12 +12601,14 @@ function renderRegAssocPicker() {
   setTimeout(_focusRegClassSearchInput, 40);
     title.textContent = "Asociar movimiento";
     back.style.visibility = "hidden";
-    grid.innerHTML = _regAssocDefs().map((d) => {
+    const defsHtml = _regAssocDefs().map((d) => {
       if (d.key === 'limosna' || d.key === 'despacho') {
         return _regSquareButtonHtml(d.label, "Vincular", d.icon, `_applyRegAssociation('${d.key}','si')`);
       }
       return _regSquareButtonHtml(d.label, "Ver opciones", d.icon, `_regAssocCurrentSource='${d.key}';renderRegAssocPicker()`);
     }).join("");
+    const clearHtml = _regSquareButtonHtml("Desasociar", "Quitar vinculo", "unlink", "_clearRegAssociationFromPicker()");
+    grid.innerHTML = defsHtml + clearHtml;
     return;
   }
   const def = _regAssocDefs().find((d) => d.key === _regAssocCurrentSource);
@@ -17141,6 +17152,84 @@ function _widgetHistFilterMovs(movs, st) {
   if (st.tipo) out = out.filter((m) => String(m.tipo || "") === st.tipo);
   return out.sort(_histSortNewestFirst);
 }
+function _renderWidgetDesktopCalendarInline(movs, month, day, key) {
+  const [y, m] = String(month || "").split("-").map(Number);
+  if (!Number.isFinite(y) || !Number.isFinite(m)) return '<div class="histm-empty">Mes invalido</div>';
+  const first = new Date(y, m - 1, 1);
+  const last = new Date(y, m, 0);
+  const startDow = (first.getDay() + 6) % 7;
+  const days = last.getDate();
+  const byDay = {};
+  (movs || []).forEach((x) => {
+    const raw = String(x.fecha || "");
+    const d = raw.includes("T") ? raw.slice(0, 10) : raw;
+    if (!d.startsWith(String(month || ""))) return;
+    if (!byDay[d]) byDay[d] = { ing: 0, egr: 0, items: [] };
+    const v = Number(x.monto || 0);
+    if (x.tipo === "ingreso") byDay[d].ing += v;
+    else if (x.tipo === "egreso") byDay[d].egr += v;
+    byDay[d].items.push(x);
+  });
+  const dows = ["L", "M", "M", "J", "V", "S", "D"];
+  let cells = "";
+  for (let i = 0; i < startDow; i++) cells += '<div class="histm-cal-cell empty"></div>';
+  for (let d = 1; d <= days; d++) {
+    const dateKey = `${month}-${String(d).padStart(2, "0")}`;
+    const data = byDay[dateKey] || { ing: 0, egr: 0, items: [] };
+    const active = String(day || "") === dateKey ? " active" : "";
+    const dotType = data.ing > data.egr ? " ing" : data.egr > data.ing ? " egr" : " mix";
+    cells += `<div class="histm-cal-cell${active}" data-day="${_histEsc(dateKey)}" role="button" tabindex="0" onclick="widgetHistSetDay(${jsArg(key)},${jsArg(dateKey)})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();widgetHistSetDay(${jsArg(key)},${jsArg(dateKey)})}">
+      <div class="histm-cal-day">${d}</div>
+      ${data.items.length ? `<span class="histm-cal-dot${dotType}" title="${data.items.length} movimiento(s)"></span>` : ""}
+    </div>`;
+  }
+  const dayItems = day && byDay[day] ? byDay[day].items.slice().sort(_histSortNewestFirst) : [];
+  const dayLabel = day ? fmtDate(day) : "Selecciona un dia";
+  const addBtn = day ? `<button class="btn btn-neu btn-sm" type="button" onclick="openRegistrarFromHistMobileDay(${jsArg(day)})">+ Anadir</button>` : "";
+  const cuentasById = new Map(getCuentas().map((c) => [String(c.id), c]));
+  let movsContent = '<div class="histd-cal-inline-empty">Sin movimientos en este dia</div>';
+  if (dayItems.length) {
+    const rowsHtml = dayItems.map((item) => {
+      const tipoBase = item.tipo === "transferencia" || /^TRF-/.test(item.codigo || "") ? "transferencia" : item.tipo === "ingreso" ? "ingreso" : "egreso";
+      const desc = item.desc || item.glosa || "Sin descripcion";
+      const cuentaActual = cuentasById.get(String(item.cuentaPago || ""));
+      const cuentaLabel = (cuentaActual == null ? void 0 : cuentaActual.label) || (item.cuentaPago ? `Cuenta eliminada · ${item.cuentaPago}` : "—");
+      const origenLabel = item.origenLabel || cuentaLabel;
+      const destinoLabel = item.destinoLabel || "—";
+      const cuentaHtml = tipoBase === "transferencia"
+        ? `<div class="histd-cp-transfer"><div><span>Desde:</span> ${_histEsc(origenLabel)}</div><div><span>Hacia:</span> ${_histEsc(destinoLabel)}</div></div>`
+        : `<span class="histd-cp-single">${_histEsc(cuentaLabel)}</span>`;
+      const mon = item.moneda || "PEN";
+      const pfx = mon === "USD" ? "$" : mon === "EUR" ? "€" : "S/";
+      const signo = tipoBase === "ingreso" ? "+" : tipoBase === "egreso" ? "−" : "";
+      const montoVal = Math.abs(parseFloat(item.monto || 0)).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      return `<tr class="histd-mov-row" onclick="openHistMobileDetailModal(${jsArg(item.id)})">
+        <td>
+          <div class="histd-desc-cell">${_histEsc(desc)}</div>
+          <div class="histd-cat-code">${_histEsc(_histDesktopCategoryLabel(item))}</div>
+        </td>
+        <td class="histd-monto-cell ht-monto ${tipoBase}">${signo}${pfx}&nbsp;${montoVal}</td>
+        <td onclick="event.stopPropagation()">
+          <button class="histd-cuenta-btn${cuentaLabel !== '—' ? ' has-cuenta' : ''}" onclick="openHistCuentaModal(${jsArg(item.id)})">${cuentaHtml}</button>
+        </td>
+      </tr>`;
+    }).join("");
+    movsContent = `<table class="histd-mov-table histd-cal-day-table">
+      <colgroup><col style="width:50%"><col style="width:20%"><col style="width:30%"></colgroup>
+      <thead><tr><th>Descripcion</th><th style="text-align:right">Monto</th><th>Cuenta de pago</th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>`;
+  }
+  return `<div class="histd-cal-split">
+    <div class="histd-cal-inline-grid">
+      <div class="histm-cal-grid">${dows.map((dw) => `<div class="histm-cal-dow">${dw}</div>`).join("")}${cells}</div>
+    </div>
+    <div class="histd-cal-inline-movs">
+      <div class="histd-cal-inline-day-hdr"><span>${dayLabel}</span>${addBtn}</div>
+      <div class="histd-cal-inline-list">${movsContent}</div>
+    </div>
+  </div>`;
+}
 function _widgetHistRender(rawKey) {
   const key = String(rawKey || "");
   const st = _widgetHistEnsureState(key, _widgetHistData[key] || []);
@@ -17162,6 +17251,8 @@ function _widgetHistRender(rawKey) {
     bodyHtml = _renderHistMobileSummary(filtered);
   } else if (st.mode === "diario") {
     bodyHtml = _renderHistorialDesktopDaily(dayMovs, false, true);
+  } else if (st.mode === "calendario") {
+    bodyHtml = _renderWidgetDesktopCalendarInline(monthMovs, st.month, st.day, key);
   } else {
     bodyHtml = _renderHistorialDesktopDaily(monthMovs, true, true);
   }
@@ -17229,6 +17320,14 @@ function widgetHistSetMode(key, mode) {
   const st = _widgetHistEnsureState(key, _widgetHistData[String(key || "")] || []);
   const next = String(mode || "mensual");
   st.mode = ["diario", "mensual", "calendario", "resumen"].includes(next) ? next : "mensual";
+  _widgetHistRender(key);
+}
+function widgetHistSetDay(key, day) {
+  const st = _widgetHistEnsureState(key, _widgetHistData[String(key || "")] || []);
+  const nextDay = String(day || "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(nextDay)) return;
+  st.day = nextDay;
+  st.month = nextDay.slice(0, 7);
   _widgetHistRender(key);
 }
 function widgetHistSetMon(key, mon) {
@@ -25105,7 +25204,37 @@ function _fillAuthGateInputs() {
     }
   }
 }
+const _LOCAL_NO_LOGIN_KEY = "ec2_local_no_login";
+function _isRunningLocalApp() {
+  try {
+    const host = String(location.hostname || "").toLowerCase();
+    return location.protocol === "file:" || host === "localhost" || host === "127.0.0.1" || host === "::1";
+  } catch (_e) {
+    return false;
+  }
+}
+function _isLocalNoLoginEnabled() {
+  if (!_isRunningLocalApp()) return false;
+  try {
+    const qs = new URLSearchParams(location.search || "");
+    const q = String(qs.get("localNoLogin") || "").trim().toLowerCase();
+    if (q === "0" || q === "false" || q === "off") {
+      LS.set(_LOCAL_NO_LOGIN_KEY, "0");
+      return false;
+    }
+    if (q === "1" || q === "true" || q === "on") {
+      LS.set(_LOCAL_NO_LOGIN_KEY, "1");
+      return true;
+    }
+  } catch (_e) {
+  }
+  const saved = String(LS.get(_LOCAL_NO_LOGIN_KEY, "")).trim().toLowerCase();
+  if (saved === "0" || saved === "false" || saved === "off") return false;
+  if (saved === "1" || saved === "true" || saved === "on") return true;
+  return true;
+}
 function _setAuthGateOpen(open) {
+  if (open && _isLocalNoLoginEnabled()) open = false;
   const gate = document.getElementById("auth-gate");
   if (!gate) return;
   gate.classList.toggle("open", !!open);
@@ -25207,6 +25336,11 @@ function initEnterpriseAuthGate() {
       }
     });
   });
+  if (_isLocalNoLoginEnabled()) {
+    _setAuthGateOpen(false);
+    _setAuthGateStatus("Modo local activo: login omitido solo en este equipo.", "ok");
+    return;
+  }
   _setAuthGateOpen(true);
   _setAuthGateStatus("Ingresa con tu correo autorizado para continuar.");
 }
@@ -25356,15 +25490,184 @@ async function _supabaseFetchSnapshot() {
   if (error && error.code !== "PGRST116") throw error;
   return data && data.payload ? data.payload : null;
 }
-async function _supabasePushSnapshot(payload) {
+async function _supabasePushSnapshot(payload, source = "sync") {
   const supabase = await _getSupabaseClient();
   const user = await _getSupabaseUser(true);
   if (!user) throw new Error("Inicia sesion en Supabase primero");
-  const row = { user_id: user.id, payload, updated_at: (/* @__PURE__ */ new Date()).toISOString() };
-  const { error } = await supabase.from("ec2_user_snapshots").upsert(row, { onConflict: "user_id" });
-  if (error) throw error;
+  const nowIso = (/* @__PURE__ */ new Date()).toISOString();
+  const { error: rpcError } = await supabase.rpc("ec2_save_snapshot", {
+    p_payload: payload,
+    p_source: source || "sync"
+  });
+  if (!rpcError) return;
+  const rpcMsg = String((rpcError == null ? void 0 : rpcError.message) || "");
+  const allowFallback = rpcError.code === "PGRST202" || rpcError.code === "42883" || /ec2_save_snapshot/i.test(rpcMsg);
+  if (!allowFallback) throw rpcError;
+  const row = { user_id: user.id, payload, updated_at: nowIso };
+  const { error: snapError } = await supabase.from("ec2_user_snapshots").upsert(row, { onConflict: "user_id" });
+  if (snapError) throw snapError;
+  const versionRow = {
+    user_id: user.id,
+    payload,
+    source: source || "sync-fallback",
+    snapshot_updated_at: nowIso,
+    updated_at: nowIso
+  };
+  const { error: versionError } = await supabase.from("ec2_user_snapshot_versions").insert(versionRow);
+  if (!versionError) return;
+  try {
+    console.warn("[sync] Fallback guardo snapshot sin version:", versionError);
+  } catch (_) {
+  }
+}
+let _supabaseVersionRows = [];
+function _setSupabaseVersionsStatus(msg, kind) {
+  const el = document.getElementById("supabase-versions-status");
+  if (!el) return;
+  el.textContent = msg || "";
+  el.style.borderColor = kind === "err" ? "rgba(185,28,28,.3)" : kind === "ok" ? "rgba(21,128,61,.25)" : "rgba(37,99,235,.12)";
+  el.style.background = kind === "err" ? "rgba(185,28,28,.07)" : kind === "ok" ? "rgba(21,128,61,.08)" : "rgba(37,99,235,.06)";
+}
+function _renderSupabaseVersionsList() {
+  const listEl = document.getElementById("supabase-versions-list");
+  if (!listEl) return;
+  if (!_supabaseVersionRows.length) {
+    listEl.innerHTML = '<div style="padding:14px;border:1px dashed var(--border2);border-radius:10px;color:var(--muted);font-size:12px;text-align:center">No hay versiones historicas para este usuario todavia.</div>';
+    return;
+  }
+  listEl.innerHTML = _supabaseVersionRows.map((row) => {
+    const stamp = row.snapshot_updated_at || row.created_at || "";
+    const when = stamp ? new Date(stamp).toLocaleString() : "Fecha desconocida";
+    const movCount = Array.isArray(row.payload == null ? void 0 : row.payload.movimientos) ? row.payload.movimientos.length : "-";
+    const src = String(row.source || "sync");
+    return `<div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface)">
+      <div style="display:grid;gap:3px;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:var(--text)">${when}</div>
+        <div style="font-size:11px;color:var(--muted)">Fuente: ${src} · Movimientos: ${movCount}</div>
+      </div>
+      <button class="btn btn-sm sync-unified-btn" onclick="restoreSupabaseVersion(${Number(row.id)})">Restaurar</button>
+    </div>`;
+  }).join("");
+}
+async function reloadSupabaseVersions() {
+  if (!_hasSupabaseConfig()) {
+    _setSupabaseVersionsStatus("Configura Supabase primero.", "err");
+    return;
+  }
+  const listEl = document.getElementById("supabase-versions-list");
+  if (listEl) listEl.innerHTML = '<div style="padding:14px;border:1px dashed var(--border2);border-radius:10px;color:var(--muted);font-size:12px;text-align:center">Cargando versiones...</div>';
+  _setSupabaseVersionsStatus("Consultando historial de versiones...", "");
+  try {
+    const supabase = await _getSupabaseClient();
+    const user = await _getSupabaseUser(true);
+    if (!user) throw new Error("Inicia sesion en Supabase primero");
+    const { data, error } = await supabase.from("ec2_user_snapshot_versions").select("id, source, snapshot_updated_at, created_at, payload").eq("user_id", user.id).is("deleted_at", null).order("created_at", { ascending: false }).limit(40);
+    if (error) throw error;
+    _supabaseVersionRows = Array.isArray(data) ? data : [];
+    _renderSupabaseVersionsList();
+    _setSupabaseVersionsStatus(`Versiones disponibles: ${_supabaseVersionRows.length}`, "ok");
+  } catch (e) {
+    _supabaseVersionRows = [];
+    _renderSupabaseVersionsList();
+    _setSupabaseVersionsStatus("No se pudo cargar historial. Verifica la migracion SQL de versionado.", "err");
+  }
+}
+function openSupabaseVersionsModal() {
+  openModal("modal-supabase-versions");
+  reloadSupabaseVersions();
+}
+function _refreshCurrentPanelAfterSync() {
+  if (panelActual === "resumen") renderResumen();
+  else if (panelActual === "directorio") renderDirectorio();
+  else if (panelActual === "servicios") renderServicios();
+  else if (panelActual === "cuentas") renderCuentas();
+  else if (panelActual === "fondos") renderFondos();
+  else if (panelActual === "proyectos") renderProyectos();
+  else if (panelActual === "colectas") renderColectas();
+  else if (panelActual === "limosna") renderLimosna();
+  else if (panelActual === "despacho") renderDespacho();
+  else if (panelActual === "parroquia") renderParroquia();
+  else if (panelActual === "capellanias") renderCapellanias();
+  else if (panelActual === "vehiculos") renderVehiculos();
+  else if (panelActual === "hermanos") renderHermanos();
+  else if (panelActual === "trabajadores") renderTrabajadores();
+  else if (panelActual === "plan") renderPlan();
+  else if (panelActual === "importexport") {
+    if (_impTab === "reglas") renderReglasBCP();
+    if (_impTab === "historial") _renderImportOpsPanel();
+  }
+}
+async function restoreSupabaseVersion(versionId) {
+  const id = Number(versionId);
+  if (!id) return;
+  const row = _supabaseVersionRows.find((v) => Number(v.id) === id);
+  if (!row || !row.payload || typeof row.payload !== "object") {
+    toast("Version invalida", "err");
+    return;
+  }
+  const movCount = Array.isArray(row.payload.movimientos) ? row.payload.movimientos.length : 0;
+  const when = row.snapshot_updated_at ? new Date(row.snapshot_updated_at).toLocaleString() : "fecha desconocida";
+  const ok = confirm(`Se restaurara la version del ${when} (${movCount} movimientos).\n\nLa app guardara este estado como nuevo snapshot actual.\n\nDeseas continuar?`);
+  if (!ok) return;
+  try {
+    _setSupabaseVersionsStatus("Restaurando version seleccionada...", "");
+    _isApplyingRemoteSync = true;
+    _applyRemoteSyncData(row.payload);
+    await _supabasePushSnapshot(_collectRemoteSnapshot(), "restore");
+    _clearAllPendingDeletedMovIds();
+    LS.set("ec2_last_sync", (/* @__PURE__ */ new Date()).toISOString());
+    updateSyncUI();
+    invalidateCache();
+    _refreshCurrentPanelAfterSync();
+    closeModal("modal-supabase-versions");
+    toast(`Version restaurada ✓ (${movCount} movimientos)`, "ok", 4200);
+  } catch (e) {
+    _setSupabaseVersionsStatus("Error al restaurar version", "err");
+    toast(e.message || "No se pudo restaurar la version", "err");
+  } finally {
+    _isApplyingRemoteSync = false;
+  }
+}
+function _captureRegistrarDraft() {
+  if (panelActual !== "registrar") return null;
+  const ids = [
+    "reg-fecha", "reg-monto", "reg-desc", "reg-cuenta-pago", "reg-grupo", "reg-cuenta", "reg-sub",
+    "reg-hermano", "reg-trabajador", "reg-servicio", "reg-proyecto", "reg-fondo", "reg-colecta",
+    "reg-vehiculo-link", "reg-capilla", "reg-capellania", "reg-limosna", "reg-despacho", "reg-boleta"
+  ];
+  const draft = {};
+  let hasData = false;
+  ids.forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const value = String(el.value || "");
+    draft[id] = value;
+    if (value.trim()) hasData = true;
+  });
+  return hasData ? draft : null;
+}
+function _restoreRegistrarDraft(draft) {
+  if (!draft || panelActual !== "registrar") return;
+  Object.keys(draft).forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = draft[id] !== void 0 ? draft[id] : "";
+  });
+  try {
+    _syncRegAssocSummary();
+  } catch (_e) {
+  }
+  try {
+    _syncRegClassSummary();
+  } catch (_e) {
+  }
+  try {
+    _syncRegCuentaPagoSummary();
+  } catch (_e) {
+  }
 }
 function _applyRemoteSyncData(data) {
+  const regDraft = _captureRegistrarDraft();
   if (Array.isArray(data == null ? void 0 : data.movimientos)) {
     const local = getMovs();
     if (local.length === 0 && data.movimientos.length > 0) {
@@ -25445,6 +25748,7 @@ function _applyRemoteSyncData(data) {
       else LS.remove("ec2_mes_activo");
     }
   }
+  _restoreRegistrarDraft(regDraft);
 }
 async function _sincronizarAhoraSupabase() {
   if (!_hasSupabaseConfig()) {
@@ -25473,25 +25777,7 @@ async function _sincronizarAhoraSupabase() {
     if (msg) msg.textContent = "Ultima sync Supabase: " + (/* @__PURE__ */ new Date()).toLocaleString();
     updateSyncUI();
     invalidateCache();
-    if (panelActual === "resumen") renderResumen();
-    else if (panelActual === "directorio") renderDirectorio();
-    else if (panelActual === "servicios") renderServicios();
-    else if (panelActual === "cuentas") renderCuentas();
-    else if (panelActual === "fondos") renderFondos();
-    else if (panelActual === "proyectos") renderProyectos();
-    else if (panelActual === "colectas") renderColectas();
-    else if (panelActual === "limosna") renderLimosna();
-    else if (panelActual === "despacho") renderDespacho();
-    else if (panelActual === "parroquia") renderParroquia();
-    else if (panelActual === "capellanias") renderCapellanias();
-    else if (panelActual === "vehiculos") renderVehiculos();
-    else if (panelActual === "hermanos") renderHermanos();
-    else if (panelActual === "trabajadores") renderTrabajadores();
-    else if (panelActual === "plan") renderPlan();
-    else if (panelActual === "importexport") {
-      if (_impTab === "reglas") renderReglasBCP();
-      if (_impTab === "historial") _renderImportOpsPanel();
-    }
+    _refreshCurrentPanelAfterSync();
   } catch (e) {
     if (dot) dot.style.background = "var(--egr)";
     _setTopbarSyncStatus("err", "Error de sync");
@@ -28629,7 +28915,13 @@ document.addEventListener("DOMContentLoaded", () => {
   initConciliacion();
   if (_hasActiveRemoteConfig()) {
     updateSyncUI();
-    setTimeout(sincronizarAhora, 1500);
+    setTimeout(async () => {
+      if (_getSyncProvider() === "supabase") {
+        const user = await _getSupabaseUser(false).catch(() => null);
+        if (!user) return;
+      }
+      await sincronizarAhora();
+    }, 1500);
     startAutoSync();
   } else {
     updateSyncUI();
