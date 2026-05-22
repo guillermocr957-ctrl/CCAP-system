@@ -22536,7 +22536,7 @@ function renderPlan() {
     const canDownGrupo = gi < grupos.length - 1;
     const cuentas = g.cuentas || [];
     html += `<div class="card" style="margin-bottom:10px">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px" draggable="true" ondragstart="onPlanDragStart('grupo',${gi},-1,-1,event)" ondragover="onPlanDragOver('grupo',${gi},-1,-1,event)" ondrop="onPlanDrop('grupo',${gi},-1,-1,event)" ondragend="onPlanDragEnd()">
         <div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${g.code}</div>
         <div style="flex:1;font-size:16px;font-weight:500;color:${color}">${g.name}</div>
         <button class="btn btn-ghost btn-xs" onclick="openPlanItemModal('cuenta',${gi})">+ cuenta</button>
@@ -22551,7 +22551,7 @@ function renderPlan() {
         const subs = c.subs || [];
         return `
         <div style="border-top:1px solid var(--border)">
-          <div style="padding:7px 0 7px 20px;display:flex;align-items:center;gap:8px">
+          <div style="padding:7px 0 7px 20px;display:flex;align-items:center;gap:8px" draggable="true" ondragstart="onPlanDragStart('cuenta',${gi},${ci},-1,event)" ondragover="onPlanDragOver('cuenta',${gi},${ci},-1,event)" ondrop="onPlanDrop('cuenta',${gi},${ci},-1,event)" ondragend="onPlanDragEnd()">
             <div style="font-family:var(--mono);font-size:11px;color:var(--muted);width:36px">${c.code}</div>
             <div style="flex:1;font-size:15px;font-weight:500">${c.name}${planTipo === "egreso" && !subs.some((s) => String(s.code || "").trim()) ? `<span style="margin-left:8px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase">${_escHtml(String(c.modoDestino || "solo_perpetuos").replace("solo_", "").replace("_", " "))}</span>` : ""}</div>
             <button class="btn btn-ghost btn-xs" style="color:var(--neu)" onclick="openPlanItemModal('sub',${gi},${ci})">+ sub</button>
@@ -22564,7 +22564,7 @@ function renderPlan() {
             const canUpSub = si > 0;
             const canDownSub = si < subs.length - 1;
             return `
-            <div style="padding:5px 0 5px 52px;display:flex;align-items:center;gap:8px;border-top:1px solid var(--border);background:var(--card2)">
+            <div style="padding:5px 0 5px 52px;display:flex;align-items:center;gap:8px;border-top:1px solid var(--border);background:var(--card2)" draggable="true" ondragstart="onPlanDragStart('sub',${gi},${ci},${si},event)" ondragover="onPlanDragOver('sub',${gi},${ci},${si},event)" ondrop="onPlanDrop('sub',${gi},${ci},${si},event)" ondragend="onPlanDragEnd()">
               <div style="font-family:var(--mono);font-size:11px;color:var(--muted);width:40px">${s.code}</div>
               <div style="flex:1;font-size:14px;color:var(--muted2)">${s.name}${planTipo === "egreso" ? `<span style="margin-left:8px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase">${_escHtml(String(s.modoDestino || "solo_perpetuos").replace("solo_", "").replace("_", " "))}</span>` : ""}</div>
               <button class="btn btn-ghost btn-xs" style="color:var(--muted2);font-size:9px;${canUpSub ? "" : "opacity:.4;pointer-events:none"}" onclick="moveSub(${gi},${ci},${si},-1)">↑</button>
@@ -22642,7 +22642,7 @@ function openPlanItemModal(kind, gi, ci = null, si = null) {
   if (nameEl) nameEl.value = prefillName;
   const showDestino = planTipo === "egreso" && (kind === "sub" || kind === "editSub" || kind === "cuenta" || kind === "editCuenta" && !cuentaTieneSubcuentas);
   if (destinoWrapEl) destinoWrapEl.style.display = showDestino ? "block" : "none";
-  if (destinoModeEl) destinoModeEl.value = prefillDestinoMode === "solo_perpetuos" || prefillDestinoMode === "solo_formacion_inicial" ? prefillDestinoMode : planTipo === "egreso" ? "solo_perpetuos" : "ambos";
+  if (destinoModeEl) destinoModeEl.value = prefillDestinoMode === "solo_perpetuos" || prefillDestinoMode === "solo_formacion_inicial" || prefillDestinoMode === "ambos" ? prefillDestinoMode : planTipo === "egreso" ? "solo_perpetuos" : "ambos";
   openModal("modal-plan-item");
   setTimeout(() => {
     if (codeEl) codeEl.focus();
@@ -22655,6 +22655,7 @@ function savePlanItemModal() {
   const name = (((_b = document.getElementById("plan-item-name")) == null ? void 0 : _b.value) || "").trim();
   const destinoModeRaw = ((document.getElementById("plan-item-destino-mode") || {}).value) || "";
   const destinoMode = String(destinoModeRaw || (planTipo === "egreso" ? "solo_perpetuos" : "ambos")).trim();
+  const destinoModeSafe = destinoMode === "solo_perpetuos" || destinoMode === "solo_formacion_inicial" || destinoMode === "ambos" ? destinoMode : "solo_perpetuos";
   if (!code || !name) {
     toast("Completa codigo y nombre", "warn");
     return;
@@ -22680,7 +22681,7 @@ function savePlanItemModal() {
     c.code = code;
     c.name = name;
     if (planTipo === "egreso") {
-      c.modoDestino = destinoMode === "solo_perpetuos" || destinoMode === "solo_formacion_inicial" ? destinoMode : "solo_perpetuos";
+      c.modoDestino = destinoModeSafe;
     } else {
       delete c.modoDestino;
     }
@@ -22696,7 +22697,7 @@ function savePlanItemModal() {
     s.code = code;
     s.name = name;
     if (planTipo === "egreso") {
-      s.modoDestino = destinoMode === "solo_perpetuos" || destinoMode === "solo_formacion_inicial" ? destinoMode : "solo_perpetuos";
+      s.modoDestino = destinoModeSafe;
     } else {
       delete s.modoDestino;
     }
@@ -22717,7 +22718,7 @@ function savePlanItemModal() {
     cuenta.subs.push({
       code,
       name,
-      ...planTipo === "egreso" ? { modoDestino: destinoMode === "solo_perpetuos" || destinoMode === "solo_formacion_inicial" ? destinoMode : "solo_perpetuos" } : {}
+      ...planTipo === "egreso" ? { modoDestino: destinoModeSafe } : {}
     });
     setPlan(p);
     renderPlan();
@@ -22731,7 +22732,7 @@ function savePlanItemModal() {
       code,
       name,
       subs: [],
-      ...planTipo === "egreso" ? { modoDestino: destinoMode === "solo_perpetuos" || destinoMode === "solo_formacion_inicial" ? destinoMode : "solo_perpetuos" } : {}
+      ...planTipo === "egreso" ? { modoDestino: destinoModeSafe } : {}
     });
     setPlan(p);
     renderPlan();
@@ -22770,6 +22771,69 @@ function delCuenta(gi, ci) {
 }
 function addSub(gi, ci) {
   openPlanItemModal("sub", gi, ci);
+}
+let _planDragState = null;
+function _planMoveArrayItem(arr, from, to) {
+  if (!Array.isArray(arr) || from === to) return false;
+  if (from < 0 || to < 0 || from >= arr.length || to >= arr.length) return false;
+  const [item] = arr.splice(from, 1);
+  const target = from < to ? to - 1 : to;
+  arr.splice(target, 0, item);
+  return true;
+}
+function _planCanDrop(level, gi, ci, si) {
+  if (!_planDragState) return false;
+  if (_planDragState.level !== level) return false;
+  if (level === "grupo") return true;
+  if (level === "cuenta") return Number(_planDragState.gi) === Number(gi);
+  if (level === "sub") return Number(_planDragState.gi) === Number(gi) && Number(_planDragState.ci) === Number(ci);
+  return false;
+}
+function onPlanDragStart(level, gi, ci, si, ev) {
+  _planDragState = { level, gi: Number(gi), ci: Number(ci), si: Number(si) };
+  if (ev == null ? void 0 : ev.dataTransfer) {
+    ev.dataTransfer.effectAllowed = "move";
+    try {
+      ev.dataTransfer.setData("text/plain", JSON.stringify(_planDragState));
+    } catch (_e) {
+    }
+  }
+}
+function onPlanDragOver(level, gi, ci, si, ev) {
+  if (!_planCanDrop(level, gi, ci, si)) return;
+  if (ev == null ? void 0 : ev.preventDefault) ev.preventDefault();
+  if ((ev == null ? void 0 : ev.dataTransfer)) ev.dataTransfer.dropEffect = "move";
+}
+function onPlanDrop(level, gi, ci, si, ev) {
+  if (ev == null ? void 0 : ev.preventDefault) ev.preventDefault();
+  if (!_planCanDrop(level, gi, ci, si)) {
+    _planDragState = null;
+    return;
+  }
+  const from = _planDragState;
+  const p = getPlan();
+  let moved = false;
+  if (level === "grupo") {
+    const grupos = p[planTipo] || [];
+    moved = _planMoveArrayItem(grupos, from.gi, Number(gi));
+  } else if (level === "cuenta") {
+    const cuentas = (((p || {})[planTipo] || [])[Number(gi)] || {}).cuentas || [];
+    moved = _planMoveArrayItem(cuentas, from.ci, Number(ci));
+  } else if (level === "sub") {
+    const subs = (((((p || {})[planTipo] || [])[Number(gi)] || {}).cuentas || [])[Number(ci)] || {}).subs || [];
+    moved = _planMoveArrayItem(subs, from.si, Number(si));
+  }
+  _planDragState = null;
+  if (!moved) return;
+  setPlan(p);
+  renderPlan();
+  toast("Orden actualizado", "ok");
+  const _u = LS.get("ec2_script_url", "");
+  if (_u) fetch(_u, { method: "POST", body: JSON.stringify({ action: "savePlan", plan: getPlan() }) }).catch(() => {
+  });
+}
+function onPlanDragEnd() {
+  _planDragState = null;
 }
 function moveGrupo(gi, delta) {
   const p = getPlan();
