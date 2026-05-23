@@ -3740,6 +3740,98 @@ body.auth-locked{overflow:hidden}
 .persona-action-btn.del:hover{border-color:var(--egr);background:rgba(185,28,28,.04);color:var(--egr)}
 .persona-action-btn.del:hover{border-color:var(--egr);color:var(--egr)}
 
+/* Servicios publicos (resumen mensual) */
+/* ─── TABLERO SERVICIOS PÚBLICOS ─── */
+.svc-public-wrap{margin-bottom:18px}
+.svc-public-card{border-radius:16px;overflow:hidden;border:1px solid rgba(15,23,42,.14);box-shadow:0 8px 24px rgba(15,23,42,.13);animation:svcFadeUp .3s ease both}
+/* Hero dark header */
+.svc-public-hero{background:radial-gradient(110% 130% at 90% -10%,rgba(14,116,144,.2) 0%,transparent 55%),linear-gradient(150deg,#0f172a 0%,#1e293b 55%,#2d3f55 100%);padding:16px 20px 18px;color:#e2e8f0}
+.svc-public-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.svc-public-kicker{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:#7dd3fc;margin-bottom:4px}
+.svc-public-title{font-size:18px;font-weight:800;letter-spacing:-.02em;color:#f1f5f9;line-height:1.1}
+/* Month navigation */
+.svc-public-month-nav{display:flex;align-items:center;gap:6px;background:rgba(15,23,42,.42);border:1px solid rgba(148,163,184,.22);border-radius:11px;padding:4px 6px;flex-shrink:0}
+.svc-public-nav-btn{width:28px;height:28px;border-radius:7px;border:1px solid rgba(148,163,184,.26);background:rgba(255,255,255,.06);color:#cbd5e1;cursor:pointer;display:grid;place-items:center;transition:all .14s;font-size:15px;line-height:1;flex-shrink:0}
+.svc-public-nav-btn:hover{background:rgba(255,255,255,.14);border-color:rgba(148,163,184,.5);color:#f8fafc}
+.svc-public-nav-month{font-size:13px;font-weight:700;color:#f1f5f9;letter-spacing:.005em;min-width:108px;text-align:center;text-transform:capitalize}
+/* KPI strip */
+.svc-public-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.svc-public-kpi{border:1px solid rgba(148,163,184,.2);border-radius:11px;padding:10px 12px;background:rgba(15,23,42,.35);animation:svcFadeUp .35s ease both}
+.svc-public-kpi:nth-child(2){animation-delay:.05s}
+.svc-public-kpi:nth-child(3){animation-delay:.1s}
+.svc-public-kpi:nth-child(4){animation-delay:.15s}
+.svc-public-kpi-label{font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:.07em;font-weight:700}
+.svc-public-kpi-val{margin-top:4px;font-size:18px;line-height:1.1;font-weight:800;font-family:var(--mono);letter-spacing:-.02em;color:#f8fafc}
+.svc-public-kpi-note{margin-top:3px;font-size:9.5px;color:#94a3b8}
+.svc-public-kpi-note.ok{color:#86efac}
+.svc-public-kpi-note.warn{color:#fca5a5}
+/* Table area */
+.svc-public-table-wrap{background:var(--card);overflow-x:auto;border-top:2px solid rgba(148,163,184,.15)}
+.svc-public-table{width:100%;border-collapse:collapse;min-width:680px}
+.svc-public-table thead th{padding:9px 16px;font-size:10px;font-weight:750;text-transform:uppercase;letter-spacing:.07em;color:var(--muted2);background:var(--card2);border-bottom:1px solid var(--border);white-space:nowrap;text-align:left}
+.svc-public-table thead th.th-right{text-align:right}
+.svc-public-table tbody tr{border-bottom:1px solid rgba(148,163,184,.1);transition:background .13s}
+.svc-public-table tbody tr:hover{background:rgba(37,99,235,.035)}
+.svc-public-table tbody tr:last-child{border-bottom:none}
+.svc-public-table td{padding:11px 16px;font-size:13px;vertical-align:middle}
+.svc-public-table td.td-right{text-align:right}
+.svc-public-table tr.svc-empty-row td{text-align:center;padding:28px 14px;color:var(--muted);font-size:12px}
+/* Servicio cell */
+.svc-public-svc-cell{display:flex;align-items:center;gap:10px}
+.svc-public-type-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex-shrink:0;background:linear-gradient(135deg,rgba(37,99,235,.1) 0%,rgba(14,116,144,.1) 100%);border:1px solid rgba(37,99,235,.14);color:#155e75}
+.svc-public-type-icon svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.svc-public-svc-name{font-size:13px;font-weight:700;color:var(--text);line-height:1.2}
+.svc-public-svc-sub{font-size:11px;color:var(--muted2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+/* Lugar cell */
+.svc-public-lugar-name{font-size:13px;color:var(--text);font-weight:600}
+.svc-public-lugar-sub{font-size:10.5px;color:var(--muted2);margin-top:1px}
+/* Cuenta pago cell */
+.svc-public-cuenta-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid rgba(37,99,235,.2);background:linear-gradient(135deg,rgba(37,99,235,.08) 0%,rgba(14,116,144,.08) 100%);color:#1e3a5f;font-size:11px;font-weight:700;max-width:230px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.svc-public-cuenta-pill svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+/* Monto cell */
+.svc-public-monto{font-family:var(--mono);font-size:14px;font-weight:800;color:var(--text);white-space:nowrap}
+/* Estado badge */
+.svc-public-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:700;white-space:nowrap;letter-spacing:.01em}
+.svc-public-badge.conf{background:rgba(16,185,129,.11);color:#059669;border:1px solid rgba(16,185,129,.26)}
+.svc-public-badge.pend{background:rgba(245,158,11,.1);color:#d97706;border:1px solid rgba(245,158,11,.26)}
+/* Footer bar */
+.svc-public-tfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 16px;border-top:1px solid var(--border);background:var(--card2);flex-wrap:wrap;gap:6px}
+.svc-public-tfoot-note{font-size:11px;color:var(--muted)}
+.svc-public-tfoot-total{display:flex;align-items:baseline;gap:6px}
+.svc-public-tfoot-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted2)}
+.svc-public-tfoot-val{font-family:var(--mono);font-size:14px;font-weight:800;color:var(--text)}
+/* Empty */
+.svc-public-empty{border:1px dashed var(--border2);border-radius:12px;padding:16px;text-align:center;font-size:12px;color:var(--muted2);background:var(--card)}
+@keyframes svcFadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+/* Tablero — botón trigger en panel */
+.svc-resumen-trigger{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;width:100%;border-radius:14px;border:1px solid var(--border);background:var(--card);cursor:pointer;transition:all .16s;box-shadow:0 2px 8px rgba(15,23,42,.06);text-align:left}
+.svc-resumen-trigger:hover{border-color:var(--neu);box-shadow:0 4px 16px rgba(37,99,235,.13);background:var(--card2)}
+.svc-resumen-trigger-left{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+.svc-resumen-trigger-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);display:grid;place-items:center;flex-shrink:0;box-shadow:0 4px 10px rgba(15,23,42,.24);color:#7dd3fc}
+.svc-resumen-trigger-icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.85;stroke-linecap:round;stroke-linejoin:round}
+.svc-resumen-trigger-title{font-size:14px;font-weight:800;color:var(--text)}
+.svc-resumen-trigger-sub{font-size:11px;color:var(--muted2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.svc-resumen-trigger-arrow{color:var(--muted2);font-size:20px;font-weight:300;transition:transform .15s ease,color .15s;flex-shrink:0;line-height:1}
+.svc-resumen-trigger:hover .svc-resumen-trigger-arrow{transform:translateX(3px);color:var(--neu)}
+/* Tablero — modal overlay */
+#svc-resumen-modal-overlay{position:fixed;inset:0;z-index:8200;background:rgba(10,15,30,.58);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .22s ease}
+#svc-resumen-modal-overlay.on{opacity:1;pointer-events:auto}
+#svc-resumen-modal-overlay.svc-fs{padding:0;align-items:stretch}
+.svc-modal{background:var(--card);border-radius:18px;box-shadow:0 28px 72px rgba(10,15,30,.34),0 4px 14px rgba(10,15,30,.16);width:min(820px,100%);max-height:min(90vh,880px);display:flex;flex-direction:column;overflow:hidden;transition:border-radius .22s,max-height .22s,width .22s,border-width .22s;animation:svcFadeUp .22s ease both}
+.svc-modal.svc-fs{width:100%;max-width:100%;height:100%;max-height:100%;border-radius:0}
+.svc-modal-topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border);background:var(--card2);flex-shrink:0}
+.svc-modal-label{font-size:12px;font-weight:800;color:var(--text);letter-spacing:.01em}
+.svc-modal-actions{display:flex;align-items:center;gap:6px}
+.svc-modal-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted2);cursor:pointer;display:grid;place-items:center;transition:all .14s}
+.svc-modal-btn:hover{border-color:var(--border2);color:var(--text);background:var(--card2)}
+.svc-modal-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+.svc-modal-body{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+@media(max-width:600px){
+  #svc-resumen-modal-overlay{padding:0;align-items:flex-end}
+  .svc-modal{width:100%;max-width:100%;border-radius:20px 20px 0 0;max-height:92vh}
+  .svc-modal.svc-fs{border-radius:0;max-height:100%}
+}
+
 @media(max-width:768px){
   .topbar-phone-hide{display:none!important}
 
@@ -3857,6 +3949,12 @@ body.auth-locked{overflow:hidden}
     gap:12px!important;
   }
 
+  .svc-public-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .svc-public-hero{padding:14px 14px 16px}
+  .svc-public-month-nav{padding:3px 5px}
+  .svc-public-nav-month{min-width:90px;font-size:12px}
+  .svc-public-table-wrap{overflow-x:auto}
+
   #cuenta-mov-popover .fondo-mov-popover-content{max-height:56vh}
   #cuenta-mov-popover-desc{grid-template-columns:1fr}
   #cuenta-mov-popover .fondo-mov-popover-inner{width:min(96vw,640px)}
@@ -3963,6 +4061,9 @@ body.auth-locked{overflow:hidden}
 .reg-plan-search-result-code{font-weight:600;color:var(--neu);font-size:11px;}
 .reg-plan-search-result-name{color:var(--muted);font-size:11px;margin-top:2px;}
 .reg-plan-search-empty{padding:12px;text-align:center;color:var(--muted);font-size:12px;}
+.plan-drop-target{position:relative}
+.plan-drop-target.plan-drop-mark::before{content:'';position:absolute;left:0;right:0;top:-2px;height:3px;background:linear-gradient(90deg,#2563eb,#38bdf8);border-radius:2px;pointer-events:none}
+.plan-drop-target.plan-drop-mark{background:rgba(37,99,235,.06)!important;border-radius:8px}
 .fondo-mes-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--card);border:none;color:var(--text);font-size:13px;cursor:pointer;gap:12px;border-left:4px solid rgba(255,255,255,.12);box-shadow:0 1px 0 rgba(255,255,255,.04);}
 .fondo-mes-title{font-weight:700;font-size:14px;color:var(--text);text-align:left;flex:1;letter-spacing:.01em;}
 .fondo-mes-summary{display:flex;align-items:center;gap:8px;flex-shrink:0;}
@@ -5369,6 +5470,7 @@ input.histd-row-select{
         </div>
         <button class="btn btn-primary btn-sm" onclick="openModalServicio()">+ Servicio</button>
       </div>
+      <div id="servicios-publicos-resumen"></div>
       <div id="servicios-lista" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px"></div>
       <div id="servicio-detalle" style="display:none">
         <button class="btn btn-ghost btn-sm" onclick="cerrarDetalleServicio()" style="margin-bottom:20px">← Volver</button>
@@ -6143,14 +6245,6 @@ input.histd-row-select{
             <button class="btn btn-sm sync-unified-btn" onclick="exportJSON()">⬇ Backup JSON</button>
             <button class="btn btn-sm sync-unified-btn" onclick="verificarBackupJSON()">✓ Verificar backup JSON</button>
             <button class="btn btn-sm sync-unified-btn" onclick="importarBackup()">↑ Restaurar backup</button>
-          </div>
-        </div>
-        <div class="card sync-card" style="border-color:rgba(124,58,237,.3)">
-          <div class="card-title" style="color:#7c3aed">Datos de demostración</div>
-          <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Carga movimientos, cuentas, hermanos, fondos y más datos de ejemplo para explorar el sistema.</p>
-          <div class="sync-export-grid">
-            <button class="btn btn-sm sync-unified-btn" style="border-color:rgba(124,58,237,.4);color:#7c3aed" onclick="cargarDatosDemo()">🧪 Cargar datos demo</button>
-            <button class="btn btn-sm sync-unified-btn" style="border-color:rgba(239,68,68,.35);color:#ef4444" onclick="eliminarMovimientosDemo()">Eliminar movimientos demo</button>
           </div>
         </div>
       </div>
@@ -9239,16 +9333,18 @@ function _nextCodigoForPrefix(prefix, movs, excludeId) {
   let max = 0;
   movs.forEach((m) => {
     if (String(m.id) === String(excludeId)) return;
-    const c = String(m.codigo || "");
-    if (!c.startsWith(prefix + "-")) return;
-    const n = parseInt(c.split("-")[2] || "0", 10);
-    if (Number.isFinite(n) && n > max) max = n;
+    const candidates = [String(m.codigo || ""), String(m.codigoEgreso || "")];
+    candidates.forEach((c) => {
+      if (!c.startsWith(prefix + "-")) return;
+      const n = parseInt(c.split("-")[2] || "0", 10);
+      if (Number.isFinite(n) && n > max) max = n;
+    });
   });
   return String(max + 1).padStart(3, "0");
 }
 function genCodigo(tipo, fecha) {
   const movs = getMovs();
-  const pref = tipo === "ingreso" ? "ING" : tipo === "egreso" ? "EGR" : tipo === "transferencia" ? "TRF" : "PND";
+  const pref = tipo === "ingreso" ? "ING" : tipo === "egreso" ? "EGR" : "TRF";
   const fd = fecha || today();
   const yymm = fd.slice(2, 4) + fd.slice(5, 7);
   const prefix = `${pref}-${yymm}`;
@@ -11584,11 +11680,7 @@ function _setRegCodeText(code) {
 function updateRegCode() {
   var _a;
   const fecha = ((_a = document.getElementById("reg-fecha")) == null ? void 0 : _a.value) || today();
-  const plan = getPlan();
-  const grupos = plan[regTipo] || [];
-  const gCode = (document.getElementById("reg-grupo") || {}).value || "";
-  const previewTipo = _regComputeIsPend(grupos, gCode) ? "pend" : regTipo;
-  _setRegCodeText(genCodigo(previewTipo, fecha));
+  _setRegCodeText(genCodigo(regTipo, fecha));
 }
 function loadGrupos(pfx) {
   const plan = getPlan();
@@ -13570,34 +13662,25 @@ async function registrar() {
   const isPend = _regComputeIsPend(grupos, grupo);
   const wasPendingConfirm = !!(originalMov && originalMov.isPend && !isPend);
   let codigoFinalToast = "";
-  let codigo, codigoEgreso = null;
+  let codigo;
+  let codigoEgreso = void 0;
   if (editId) {
     const movExist = originalMov;
     const oldYYMM = ((movExist == null ? void 0 : movExist.codigo) || "").slice(4, 8);
     const newYYMM = fecha.slice(2, 4) + fecha.slice(5, 7);
     const monthChanged = oldYYMM !== newYYMM;
     if (monthChanged) {
-      codigo = genCodigo(isPend ? "pend" : regTipo, fecha);
-    } else {
-      codigo = (movExist == null ? void 0 : movExist.codigo) || genCodigo(isPend ? "pend" : regTipo, fecha);
-    }
-    if (isPend && !(movExist == null ? void 0 : movExist.isPend)) {
-      codigoEgreso = genCodigo(regTipo, fecha);
-    } else if (isPend && (movExist == null ? void 0 : movExist.isPend)) {
-      if (monthChanged || !(movExist == null ? void 0 : movExist.codigoEgreso)) codigoEgreso = genCodigo(regTipo, fecha);
-      else codigoEgreso = movExist.codigoEgreso;
-    } else if (!isPend && (movExist == null ? void 0 : movExist.isPend) && (movExist == null ? void 0 : movExist.codigoEgreso)) {
-      codigo = movExist.codigoEgreso;
-      codigoEgreso = null;
-    } else if (!isPend && (movExist == null ? void 0 : movExist.isPend) && !(movExist == null ? void 0 : movExist.codigoEgreso)) {
       codigo = genCodigo(regTipo, fecha);
-      codigoEgreso = null;
+    } else {
+      codigo = (movExist == null ? void 0 : movExist.codigo) || genCodigo(regTipo, fecha);
+    }
+    const prevCodigo = String((movExist == null ? void 0 : movExist.codigo) || "").trim();
+    if (prevCodigo.startsWith("PND-")) {
+      codigo = String((movExist == null ? void 0 : movExist.codigoEgreso) || "").trim() || genCodigo(regTipo, fecha);
+      codigoFinalToast = codigo;
     }
   } else {
-    codigo = genCodigo(isPend ? "pend" : regTipo, fecha);
-    if (isPend) {
-      codigoEgreso = genCodigo(regTipo, fecha);
-    }
+    codigo = genCodigo(regTipo, fecha);
   }
   LS.set("ec2_last_cuenta", cuentaPago);
   const curiaExpectedMonto = regCuria && regTipo === "egreso" ? (regCuriaModo === "parcial" ? parseMonto(regCuriaMontoEsperado) : monto) : 0;
@@ -14857,7 +14940,7 @@ function _renderHistorialDesktopDaily(movs, isMonthly = false, skipDateFilter = 
     const catCode = m.sCode || m.cCode || m.gCode || "";
     const _catBtnBase = m.sCode ? `${m.sCode} \xB7 ${m.sub || ""}` : m.cCode ? `${m.cCode} \xB7 ${m.cuenta || ""}` : m.gCode ? `${m.gCode} \xB7 ${m.grupo || ""}` : "";
     const _catDestino = _catBtnBase ? _resolveMovDestinoContable(m) : "";
-    const catBtnLabel = _catBtnBase ? (_catDestino === "perpetuos" ? `${_catBtnBase} \u2013 Perpetuos` : _catDestino === "formacion_inicial" ? `${_catBtnBase} \u2013 F. Inicial` : _catBtnBase) : "";
+    const catBtnLabel = _catBtnBase ? (_catDestino === "formacion_inicial" ? `${_catBtnBase} \u2013 F. Inicial` : _catBtnBase) : "";
     const assocLabel = _histAssocLabel(m);
     const canClassify = _movPermiteClasificar(m);
     const canAssociate = _movPermiteAsociar(m);
@@ -14912,7 +14995,7 @@ function _renderHistorialDesktopDaily(movs, isMonthly = false, skipDateFilter = 
         const subCatBtnLabel = sub.sCode ? `${sub.sCode} \xB7 ${sub.sub||""}`  : sub.cCode ? `${sub.cCode} \xB7 ${sub.cuenta||""}` : sub.gCode ? `${sub.gCode} \xB7 ${sub.grupo||""}` : "";
           const _subCatBase = subCatBtnLabel;
           const _subCatDestino = _subCatBase ? _resolveMovDestinoContable(sub) : "";
-          const subCatBtnLabelWithDestino = _subCatBase ? (_subCatDestino === "perpetuos" ? `${_subCatBase} \u2013 Perpetuos` : _subCatDestino === "formacion_inicial" ? `${_subCatBase} \u2013 F. Inicial` : _subCatBase) : "";
+          const subCatBtnLabelWithDestino = _subCatBase ? (_subCatDestino === "formacion_inicial" ? `${_subCatBase} \u2013 F. Inicial` : _subCatBase) : "";
         const subMon = sub.moneda || "PEN";
         const subPfx = subMon === "USD" ? "$" : subMon === "EUR" ? "\u20AC" : "S/";
         const subSign = sub.tipo === "ingreso" ? "+" : "\u2212";
@@ -16535,13 +16618,13 @@ function renderTablaHistorialItems(movs, opts = {}) {
     } else if (m.tipo === "transferencia" || m.subTipo === "entrada") {
       catCell = `<button class="cat-label" onclick="openCategorySelector(${jsArg(m.id)})" title="Cambiar categor\xEDa"><span class="cat-label-code">\u21C4</span><span class="cat-label-name">Transferencia</span></button>`;
     } else if (m.sCode) {
-      const _mobDestS = _resolveMovDestinoContable(m); const _mobSufS = _mobDestS === "perpetuos" ? " \u2013 Perpetuos" : _mobDestS === "formacion_inicial" ? " \u2013 F. Inicial" : "";
+      const _mobDestS = _resolveMovDestinoContable(m); const _mobSufS = _mobDestS === "formacion_inicial" ? " \u2013 F. Inicial" : "";
       catCell = `<button class="cat-label" onclick="openCategorySelector(${jsArg(m.id)})" title="Cambiar categor\xEDa"><span class="cat-label-code">${m.sCode}</span><span class="cat-label-name">${m.sub || ""}${_mobSufS}</span></button>`;
     } else if (m.cCode) {
-      const _mobDestC = _resolveMovDestinoContable(m); const _mobSufC = _mobDestC === "perpetuos" ? " \u2013 Perpetuos" : _mobDestC === "formacion_inicial" ? " \u2013 F. Inicial" : "";
+      const _mobDestC = _resolveMovDestinoContable(m); const _mobSufC = _mobDestC === "formacion_inicial" ? " \u2013 F. Inicial" : "";
       catCell = `<button class="cat-label" onclick="openCategorySelector(${jsArg(m.id)})" title="Cambiar categor\xEDa"><span class="cat-label-code">${m.cCode}</span><span class="cat-label-name">${m.cuenta || ""}${_mobSufC}</span></button>`;
     } else if (m.gCode) {
-      const _mobDestG = _resolveMovDestinoContable(m); const _mobSufG = _mobDestG === "perpetuos" ? " \u2013 Perpetuos" : _mobDestG === "formacion_inicial" ? " \u2013 F. Inicial" : "";
+      const _mobDestG = _resolveMovDestinoContable(m); const _mobSufG = _mobDestG === "formacion_inicial" ? " \u2013 F. Inicial" : "";
       catCell = `<button class="cat-label" onclick="openCategorySelector(${jsArg(m.id)})" title="Cambiar categor\xEDa"><span class="cat-label-code">${m.gCode}</span><span class="cat-label-name">${m.grupo || ""}${_mobSufG}</span></button>`;
     } else {
       catCell = `<button class="cat-label" onclick="openCategorySelector(${jsArg(m.id)})" title="Cambiar categor\xEDa"><span class="cat-label-code">\u2014</span></button>`;
@@ -20511,9 +20594,243 @@ function _onServicioWidgetEliminar(id, ev) {
   if (ev && typeof ev.stopPropagation === "function") ev.stopPropagation();
   eliminarServicio(id);
 }
+const _SVC_PUBLIC_TYPES = new Set(["agua", "luz", "gas", "internet", "telefono", "cable"]);
+function _svcMonthKey(rawFecha) {
+  const raw = String(rawFecha || "");
+  const base = raw.includes("T") ? raw.slice(0, 10) : raw;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(base)) return "";
+  return base.slice(0, 7);
+}
+function _svcMonthShift(ym, delta) {
+  const m = String(ym || "").match(/^(\d{4})-(\d{2})$/);
+  if (!m) return "";
+  const y = Number(m[1]);
+  const mm = Number(m[2]);
+  const dt = new Date(y, mm - 1 + delta, 1);
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
+}
+function _svcPublicSummaryData(svcs) {
+  const svcById = /* @__PURE__ */ new Map();
+  (svcs || []).forEach((s) => svcById.set(String(s.id), s || {}));
+  const baseMonth = mesActual();
+  const monthKeys = [];
+  for (let i = 0; i < 6; i++) monthKeys.push(_svcMonthShift(baseMonth, -i));
+  const months = {};
+  monthKeys.forEach((k) => {
+    months[k] = {
+      key: k,
+      total: 0,
+      confirmados: 0,
+      pendientes: 0,
+      pagos: 0,
+      byType: { agua: 0, luz: 0, gas: 0, internet: 0, telefono: 0, cable: 0 }
+    };
+  });
+  const movs = getMovs();
+  for (const m of movs) {
+    if (!_movEsEgresoOperativo(m) || !!m.esSaldoInicial) continue;
+    const sid = String(m && m.servicio || "");
+    if (!sid) continue;
+    const svc = svcById.get(sid);
+    if (!svc) continue;
+    const tipo = String(svc.tipo || "otro").toLowerCase();
+    if (!_SVC_PUBLIC_TYPES.has(tipo)) continue;
+    const mon = String((m == null ? void 0 : m.moneda) || "PEN").toUpperCase();
+    if (mon !== "PEN") continue;
+    const ym = _svcMonthKey(m == null ? void 0 : m.fecha);
+    if (!ym || !months[ym]) continue;
+    const monto = Math.max(0, parseFloat((m == null ? void 0 : m.monto) || 0) || 0);
+    const isPending = !!((m == null ? void 0 : m.isPend) || (m == null ? void 0 : m.porConfirmar) || (m == null ? void 0 : m.pendienteCuentas));
+    const bucket = months[ym];
+    bucket.total += monto;
+    bucket.pagos += 1;
+    if (isPending) bucket.pendientes += monto;
+    else bucket.confirmados += monto;
+    bucket.byType[tipo] = (bucket.byType[tipo] || 0) + monto;
+  }
+  const current = months[baseMonth] || { total: 0, confirmados: 0, pendientes: 0, pagos: 0, byType: {} };
+  const prevKey = _svcMonthShift(baseMonth, -1);
+  const previous = months[prevKey] || { total: 0, confirmados: 0, pendientes: 0, pagos: 0, byType: {} };
+  return { monthKeys, months, current, previous, baseMonth };
+}
+/* ─── navegación de mes ─── */
+var _svcPublicNavMonth = null;
+function _svcPublicGetNavMonth() {
+  return _svcPublicNavMonth || mesActual();
+}
+function _svcPublicNavTo(ym) {
+  _svcPublicNavMonth = ym;
+  _svcPublicRenderModalContent();
+}
+/* ─── datos simplificados para la vista por mes ─── */
+const _SVC_TYPE_ICON = {
+  agua: '<svg viewBox="0 0 24 24"><path d="M12 2.5C9.8 5.3 6 9.5 6 13a6 6 0 0 0 12 0c0-3.5-3.8-7.7-6-10.5Z"/></svg>',
+  luz: '<svg viewBox="0 0 24 24"><path d="M13 2 5 14h6l-1 8 9-13h-6l1-7Z"/></svg>',
+  gas: '<svg viewBox="0 0 24 24"><path d="M12 3c2.6 3 4.5 4.8 4.5 8a4.5 4.5 0 1 1-9 0c0-3.2 1.9-5 4.5-8Z"/><path d="M9.5 14.5c.8.9 1.6 1.3 2.5 1.3"/></svg>',
+  internet: '<svg viewBox="0 0 24 24"><path d="M4 9a12 12 0 0 1 16 0"/><path d="M7 12a8 8 0 0 1 10 0"/><path d="M10 15a4 4 0 0 1 4 0"/><circle cx="12" cy="18" r="1"/></svg>',
+  telefono: '<svg viewBox="0 0 24 24"><path d="M22 16.9v2.5a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 11.1 18a19.4 19.4 0 0 1-6-6 19.8 19.8 0 0 1-3.4-8.7A2 2 0 0 1 3.7 1h2.5a2 2 0 0 1 2 1.7c.2 1 .5 1.9.9 2.8a2 2 0 0 1-.4 2L7.6 8.6a16 16 0 0 0 7.8 7.8l1.1-1.1a2 2 0 0 1 2-.4c.9.4 1.8.7 2.8.9a2 2 0 0 1 1.7 2Z"/></svg>',
+  cable: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>',
+  otro: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>'
+};
+const _SVC_TYPE_LABEL = { agua: "Agua", luz: "Electricidad", gas: "Gas", internet: "Internet", telefono: "Teléfono", cable: "Cable TV", otro: "Otro" };
+function _svcPublicRowData(svcs, targetMonth) {
+  const svcById = /* @__PURE__ */ new Map();
+  (svcs || []).forEach((s) => svcById.set(String(s.id), s));
+  const prevMonth = _svcMonthShift(targetMonth, -1);
+  const result = { rows: [], total: 0, confirmados: 0, pendientes: 0, pagos: 0, prevTotal: 0 };
+  const movs = getMovs();
+  for (const m of movs) {
+    if (!_movEsEgresoOperativo(m) || !!m.esSaldoInicial) continue;
+    const sid = String((m == null ? void 0 : m.servicio) || "");
+    if (!sid) continue;
+    const svc = svcById.get(sid);
+    if (!svc) continue;
+    const tipo = String((svc == null ? void 0 : svc.tipo) || "otro").toLowerCase();
+    if (!_SVC_PUBLIC_TYPES.has(tipo)) continue;
+    if (String((m == null ? void 0 : m.moneda) || "PEN").toUpperCase() !== "PEN") continue;
+    const ym = _svcMonthKey(m == null ? void 0 : m.fecha);
+    const monto = Math.max(0, parseFloat((m == null ? void 0 : m.monto) || 0) || 0);
+    const isPending = !!((m == null ? void 0 : m.isPend) || (m == null ? void 0 : m.porConfirmar) || (m == null ? void 0 : m.pendienteCuentas));
+    if (ym === targetMonth) {
+      result.rows.push({ svc, mov: m, monto, isPending, tipo });
+      result.total += monto;
+      result.pagos += 1;
+      if (isPending) result.pendientes += monto;
+      else result.confirmados += monto;
+    } else if (ym === prevMonth) {
+      result.prevTotal += monto;
+    }
+  }
+  result.rows.sort((a, b) => (a.tipo || "").localeCompare(b.tipo || "") || (a.svc.empresa || "").localeCompare(b.svc.empresa || ""));
+  return result;
+}
+function _renderServiciosPublicosResumen(svcs) {
+  const host = document.getElementById("servicios-publicos-resumen");
+  if (!host) return;
+  const hasPublicServices = (svcs || []).some((s) => _SVC_PUBLIC_TYPES.has(String((s == null ? void 0 : s.tipo) || "").toLowerCase()));
+  if (!hasPublicServices) {
+    host.innerHTML = '<div class="svc-public-empty">Registra al menos un servicio público (agua, luz, gas, internet, teléfono o cable) para ver el tablero mensual.</div>';
+    return;
+  }
+  const navMonth = _svcPublicGetNavMonth();
+  const data = _svcPublicRowData(svcs, navMonth);
+  const sub = data.pagos > 0
+    ? `${fmt(data.total)} · ${data.pagos} pago${data.pagos !== 1 ? "s" : ""} en ${fmtMes(navMonth)}`
+    : `Sin pagos registrados en ${fmtMes(navMonth)}`;
+  host.innerHTML = `<div class="svc-public-wrap">
+    <button class="svc-resumen-trigger" onclick="_svcPublicOpenModal()">
+      <div class="svc-resumen-trigger-left">
+        <div class="svc-resumen-trigger-icon"><svg viewBox="0 0 24 24"><path d="M4 19V6"/><path d="M10 19V10"/><path d="M16 19V4"/><path d="M22 19V13"/><path d="M2 19h20"/></svg></div>
+        <div style="min-width:0">
+          <div class="svc-resumen-trigger-title">Ver tablero de servicios</div>
+          <div class="svc-resumen-trigger-sub">${sub}</div>
+        </div>
+      </div>
+      <span class="svc-resumen-trigger-arrow">›</span>
+    </button>
+  </div>`;
+}
+function _svcPublicOpenModal() {
+  let overlay = document.getElementById("svc-resumen-modal-overlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "svc-resumen-modal-overlay";
+    overlay.innerHTML = `<div class="svc-modal" id="svc-resumen-modal">
+      <div class="svc-modal-topbar">
+        <span class="svc-modal-label">Tablero &mdash; Servicios públicos</span>
+        <div class="svc-modal-actions">
+          <button class="svc-modal-btn" id="svc-modal-fs-btn" onclick="_svcPublicToggleFullscreen()" title="Pantalla completa">
+            <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          </button>
+          <button class="svc-modal-btn" onclick="_svcPublicCloseModal()" title="Cerrar">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="svc-modal-body" id="svc-resumen-modal-body"></div>
+    </div>`;
+    overlay.addEventListener("click", function(e) { if (e.target === overlay) _svcPublicCloseModal(); });
+    document.body.appendChild(overlay);
+  }
+  _svcPublicRenderModalContent();
+  overlay.classList.add("on");
+  document.body.style.overflow = "hidden";
+}
+function _svcPublicCloseModal() {
+  const overlay = document.getElementById("svc-resumen-modal-overlay");
+  if (overlay) { overlay.classList.remove("on", "svc-fs"); }
+  const modal = document.getElementById("svc-resumen-modal");
+  if (modal) modal.classList.remove("svc-fs");
+  document.body.style.overflow = "";
+}
+function _svcPublicToggleFullscreen() {
+  const overlay = document.getElementById("svc-resumen-modal-overlay");
+  const modal = document.getElementById("svc-resumen-modal");
+  if (!overlay || !modal) return;
+  const isFs = modal.classList.contains("svc-fs");
+  modal.classList.toggle("svc-fs", !isFs);
+  overlay.classList.toggle("svc-fs", !isFs);
+  const btn = document.getElementById("svc-modal-fs-btn");
+  if (btn) btn.title = isFs ? "Pantalla completa" : "Salir de pantalla completa";
+}
+function _svcPublicRenderModalContent() {
+  const body = document.getElementById("svc-resumen-modal-body");
+  if (!body) return;
+  const svcs = getServicios();
+  const navMonth = _svcPublicGetNavMonth();
+  const prevMonth = _svcMonthShift(navMonth, -1);
+  const nextMonth = _svcMonthShift(navMonth, 1);
+  const todayMonth = mesActual();
+  const data = _svcPublicRowData(svcs, navMonth);
+  const delta = data.total - data.prevTotal;
+  const pctStr = data.prevTotal > 0 ? ` (${delta >= 0 ? "+" : ""}${((delta / data.prevTotal) * 100).toFixed(1)}%)` : "";
+  const deltaNote = data.prevTotal > 0
+    ? `vs ${fmtMes(prevMonth)}: ${delta >= 0 ? "+" : "-"}${fmt(Math.abs(delta))}${pctStr}`
+    : `Sin datos de ${fmtMes(prevMonth)}`;
+  const canGoNext = navMonth < todayMonth;
+  const confPct = data.total > 0 ? ((data.confirmados / data.total) * 100).toFixed(0) : "0";
+  const pendPct = data.total > 0 ? ((data.pendientes / data.total) * 100).toFixed(0) : "0";
+  const rows = data.rows.length === 0
+    ? `<tr class="svc-empty-row"><td colspan="4">Sin pagos registrados en ${fmtMes(navMonth)}</td></tr>`
+    : data.rows.map(({ svc, mov, monto, tipo }) => {
+        const icon = _SVC_TYPE_ICON[tipo] || _SVC_TYPE_ICON.otro;
+        const typeLabel = _SVC_TYPE_LABEL[tipo] || tipo;
+        const empresa = svc.empresa || "";
+        const lugar = _svcBelongsLabel(svc.pertenece) || "—";
+        const cuenta = cuentaLabel((mov == null ? void 0 : mov.cuentaPago) || (mov == null ? void 0 : mov.cuenta) || "") || "—";
+        return `<tr><td><div class="svc-public-svc-cell"><div class="svc-public-type-icon">${icon}</div><div><div class="svc-public-svc-name">${typeLabel}</div><div class="svc-public-svc-sub">${empresa}</div></div></div></td><td><div class="svc-public-lugar-name">${lugar}</div></td><td><span class="svc-public-cuenta-pill"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg>${_escHtml(cuenta)}</span></td><td class="td-right"><span class="svc-public-monto">${fmt(monto)}</span></td></tr>`;
+      }).join("");
+  body.innerHTML = `<div class="svc-public-hero">
+    <div class="svc-public-hero-top">
+      <div><div class="svc-public-kicker">Servicios públicos</div><div class="svc-public-title">Tablero mensual de pagos</div></div>
+      <div class="svc-public-month-nav">
+        <button class="svc-public-nav-btn" onclick="_svcPublicNavTo('${prevMonth}')" title="Mes anterior">&#8249;</button>
+        <span class="svc-public-nav-month">${fmtMes(navMonth)}</span>
+        <button class="svc-public-nav-btn" onclick="${canGoNext ? `_svcPublicNavTo('${nextMonth}')` : "void(0)"}" style="${canGoNext ? "" : "opacity:.35;cursor:default"}" title="Mes siguiente">&#8250;</button>
+      </div>
+    </div>
+    <div class="svc-public-kpis">
+      <article class="svc-public-kpi"><div class="svc-public-kpi-label">Total del mes</div><div class="svc-public-kpi-val">${fmt(data.total)}</div><div class="svc-public-kpi-note">${data.pagos} pago${data.pagos !== 1 ? "s" : ""} registrado${data.pagos !== 1 ? "s" : ""}</div></article>
+      <article class="svc-public-kpi"><div class="svc-public-kpi-label">Confirmados</div><div class="svc-public-kpi-val">${fmt(data.confirmados)}</div><div class="svc-public-kpi-note ok">${confPct}% del total</div></article>
+      <article class="svc-public-kpi"><div class="svc-public-kpi-label">Pendientes</div><div class="svc-public-kpi-val">${fmt(data.pendientes)}</div><div class="svc-public-kpi-note${data.pendientes > 0 ? " warn" : ""}">${pendPct}% del total</div></article>
+      <article class="svc-public-kpi"><div class="svc-public-kpi-label">Vs mes anterior</div><div class="svc-public-kpi-val">${fmt(data.prevTotal > 0 ? data.prevTotal : 0)}</div><div class="svc-public-kpi-note">${deltaNote}</div></article>
+    </div>
+  </div>
+  <div class="svc-public-table-wrap">
+    <table class="svc-public-table">
+      <thead><tr><th>Servicio</th><th>Lugar</th><th>Cuenta pago</th><th class="th-right">Monto</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="svc-public-tfoot">
+      <span class="svc-public-tfoot-note">PEN &middot; Solo egresos operativos vinculados a servicios públicos</span>
+      <div class="svc-public-tfoot-total"><span class="svc-public-tfoot-label">Total</span><span class="svc-public-tfoot-val">${fmt(data.total)}</span></div>
+    </div>
+  </div>`;
+}
 function renderServicios() {
   cerrarDetalleServicio();
   const svcs = getServicios();
+  _renderServiciosPublicosResumen(svcs);
   if (!svcs.length) {
     document.getElementById("servicios-lista").innerHTML = '<div style="grid-column:1/-1;color:var(--muted);padding:24px;text-align:center">Sin servicios registrados. Agrega un servicio.</div>';
     return;
@@ -20618,6 +20935,8 @@ function verDetalleServicio(servicioId) {
     document.getElementById("servicio-mov-totales").innerHTML = `<div class="fondo-mov-totales-row egr"><span>Total pagado</span><strong>\u2212${fmt(egresosTotales)}</strong></div>`;
   }
   document.getElementById("servicios-lista").style.display = "none";
+  const resumenEl = document.getElementById("servicios-publicos-resumen");
+  if (resumenEl) resumenEl.style.display = "none";
   document.getElementById("servicio-detalle").style.display = "block";
 }
 function toggleServicioInfo() {
@@ -20629,6 +20948,8 @@ function toggleServicioInfo() {
 }
 function cerrarDetalleServicio() {
   document.getElementById("servicios-lista").style.display = "grid";
+  const resumenEl = document.getElementById("servicios-publicos-resumen");
+  if (resumenEl) resumenEl.style.display = "";
   document.getElementById("servicio-detalle").style.display = "none";
 }
 function toggleServicioMes(mesId) {
@@ -21732,10 +22053,16 @@ async function accionConfirmarPendiente(id, ev) {
     openCategorySelector(movId);
     return;
   }
+  const tipoFinal = mov.tipo === "ingreso" ? "ingreso" : mov.tipo === "transferencia" ? "transferencia" : "egreso";
+  const codigoActual = String(mov.codigo || "").trim();
+  const codigoReservado = String(mov.codigoEgreso || "").trim();
+  const codigoFinal = codigoActual.startsWith("PND-") ? (codigoReservado || genCodigo(tipoFinal, mov.fecha || today())) : (codigoActual || genCodigo(tipoFinal, mov.fecha || today()));
   const updated = _syncRendicionStateOnMov({
     ...mov,
     porConfirmar: false,
-    isPend: false
+    isPend: false,
+    codigo: codigoFinal,
+    codigoEgreso: null
   });
   const nextMovs = movs.slice();
   nextMovs[idx] = updated;
@@ -21756,7 +22083,7 @@ async function accionConfirmarPendiente(id, ev) {
   updatePendBadge();
   if (panelActual === "pendientes") renderPendientes();
   else renderHistorial();
-  toast("Movimiento confirmado ✓", "ok");
+  toast(`Movimiento confirmado ✓ · Código final: ${codigoFinal}`, "ok");
 }
 function accionEditarHistorial(id, ev) {
   if (ev) {
@@ -23065,6 +23392,165 @@ function exportPlanillaCSV(tipo, modo) {
   _planillasDownloadCsv(`planilla_${tipo}_${ym}_detalle.csv`, out);
   toast("CSV de detalle generado", "ok");
 }
+function _planParseCodeNum(code) {
+  const raw = String(code || "").trim();
+  if (!/^\d+$/.test(raw)) return null;
+  return { num: parseInt(raw, 10), len: raw.length };
+}
+function _planSuggestNextGrupoCode(tipo) {
+  const plan = getPlan();
+  const grupos = plan[tipo] || [];
+  let max = 0;
+  let width = 2;
+  grupos.forEach((g) => {
+    const parsed = _planParseCodeNum(g == null ? void 0 : g.code);
+    if (!parsed) return;
+    if (parsed.num > max) max = parsed.num;
+    if (parsed.len > width) width = parsed.len;
+  });
+  return String(max + 1).padStart(width, "0");
+}
+function _planSuggestNextCuentaCode(tipo, gi) {
+  const plan = getPlan();
+  const grupo = ((plan[tipo] || [])[Number(gi)] || {});
+  const cuentas = grupo.cuentas || [];
+  let max = 0;
+  let width = 3;
+  cuentas.forEach((c) => {
+    const parsed = _planParseCodeNum(c == null ? void 0 : c.code);
+    if (!parsed) return;
+    if (parsed.num > max) max = parsed.num;
+    if (parsed.len > width) width = parsed.len;
+  });
+  if (max > 0) return String(max + 1).padStart(width, "0");
+  const gParsed = _planParseCodeNum(grupo == null ? void 0 : grupo.code);
+  if (!gParsed) return "001";
+  const base = gParsed.num * 10 + 1;
+  const baseWidth = Math.max(3, gParsed.len + 1);
+  return String(base).padStart(baseWidth, "0");
+}
+function _planSuggestNextSubCode(tipo, gi, ci) {
+  const plan = getPlan();
+  const cuenta = ((((plan[tipo] || [])[Number(gi)] || {}).cuentas || [])[Number(ci)] || {});
+  const subs = cuenta.subs || [];
+  let max = 0;
+  let width = 4;
+  subs.forEach((s) => {
+    const parsed = _planParseCodeNum(s == null ? void 0 : s.code);
+    if (!parsed) return;
+    if (parsed.num > max) max = parsed.num;
+    if (parsed.len > width) width = parsed.len;
+  });
+  if (max > 0) return String(max + 1).padStart(width, "0");
+  const cParsed = _planParseCodeNum(cuenta == null ? void 0 : cuenta.code);
+  if (!cParsed) return "0001";
+  const base = cParsed.num * 10 + 1;
+  const baseWidth = Math.max(4, cParsed.len + 1);
+  return String(base).padStart(baseWidth, "0");
+}
+function _planPrefillNextGrupoCode() {
+  const input = document.getElementById("ng-c");
+  if (!input) return;
+  if (String(input.value || "").trim()) return;
+  input.value = _planSuggestNextGrupoCode(planTipo);
+}
+function _planItemsAllNumeric(items) {
+  const arr = Array.isArray(items) ? items : [];
+  if (!arr.length) return false;
+  return arr.every((x) => !!_planParseCodeNum(x == null ? void 0 : x.code));
+}
+function _planRenumberItems(items, start, width) {
+  items.forEach((it, idx) => {
+    it.code = String(start + idx).padStart(width, "0");
+  });
+}
+function _planRenumberStartFromParsed(parsed, fallbackStart) {
+  const nums = (parsed || []).map((x) => Number(x == null ? void 0 : x.num)).filter((n) => Number.isFinite(n));
+  const positive = nums.filter((n) => n > 0);
+  if (positive.length) return Math.min(...positive);
+  if (nums.length) return Math.min(...nums);
+  return Number.isFinite(fallbackStart) ? fallbackStart : 1;
+}
+function _planAutoRenumberTree(p, tipo) {
+  const grupos = p[tipo] || [];
+  if (_planItemsAllNumeric(grupos)) {
+    const parsed = grupos.map((g) => _planParseCodeNum(g == null ? void 0 : g.code));
+    const start = _planRenumberStartFromParsed(parsed, 1);
+    const width = Math.max(...parsed.map((x) => x.len));
+    _planRenumberItems(grupos, start, width);
+  }
+  grupos.forEach((g) => {
+    const cuentas = g.cuentas || [];
+    if (_planItemsAllNumeric(cuentas)) {
+      const gParsed = _planParseCodeNum(g == null ? void 0 : g.code);
+      const parsed = cuentas.map((c) => _planParseCodeNum(c == null ? void 0 : c.code));
+      const parentStart = gParsed ? gParsed.num * 10 + 1 : NaN;
+      const start = _planRenumberStartFromParsed(parsed, parentStart);
+      const width = Math.max(gParsed ? gParsed.len + 1 : 0, ...parsed.map((x) => x.len));
+      _planRenumberItems(cuentas, start, width);
+    }
+    cuentas.forEach((c) => {
+      const subs = c.subs || [];
+      if (!_planItemsAllNumeric(subs)) return;
+      const cParsed = _planParseCodeNum(c == null ? void 0 : c.code);
+      const parsed = subs.map((s) => _planParseCodeNum(s == null ? void 0 : s.code));
+      const parentStart = cParsed ? cParsed.num * 10 + 1 : NaN;
+      const start = _planRenumberStartFromParsed(parsed, parentStart);
+      const width = Math.max(cParsed ? cParsed.len + 1 : 0, ...parsed.map((x) => x.len));
+      _planRenumberItems(subs, start, width);
+    });
+  });
+}
+function _planNormalizeTypeToBase(p, tipo, baseStart) {
+  const grupos = p[tipo] || [];
+  if (_planItemsAllNumeric(grupos)) {
+    const parsed = grupos.map((g) => _planParseCodeNum(g == null ? void 0 : g.code));
+    const width = Math.max(String(baseStart || "").length || 2, ...parsed.map((x) => x.len));
+    _planRenumberItems(grupos, Number(baseStart) || 1, width);
+  }
+  grupos.forEach((g) => {
+    const cuentas = g.cuentas || [];
+    if (_planItemsAllNumeric(cuentas)) {
+      const gParsed = _planParseCodeNum(g == null ? void 0 : g.code);
+      const parsed = cuentas.map((c) => _planParseCodeNum(c == null ? void 0 : c.code));
+      const parentStart = gParsed ? gParsed.num * 10 + 1 : NaN;
+      const start = Number.isFinite(parentStart) ? parentStart : _planRenumberStartFromParsed(parsed, 1);
+      const width = Math.max(gParsed ? gParsed.len + 1 : 0, ...parsed.map((x) => x.len));
+      _planRenumberItems(cuentas, start, width);
+    }
+    cuentas.forEach((c) => {
+      const subs = c.subs || [];
+      if (!_planItemsAllNumeric(subs)) return;
+      const cParsed = _planParseCodeNum(c == null ? void 0 : c.code);
+      const parsed = subs.map((s) => _planParseCodeNum(s == null ? void 0 : s.code));
+      const parentStart = cParsed ? cParsed.num * 10 + 1 : NaN;
+      const start = Number.isFinite(parentStart) ? parentStart : _planRenumberStartFromParsed(parsed, 1);
+      const width = Math.max(cParsed ? cParsed.len + 1 : 0, ...parsed.map((x) => x.len));
+      _planRenumberItems(subs, start, width);
+    });
+  });
+}
+let _planBaseNormalizationChecked = false;
+function _planNormalizeToBaseIfPending() {
+  if (_planBaseNormalizationChecked) return false;
+  _planBaseNormalizationChecked = true;
+  if (LS.get("ec2_plan_normalize_base_run", "") !== "1") return false;
+  const key = "ec2_plan_normalize_base_v2";
+  if (LS.get(key, "") === "done") return false;
+  const p = getPlan();
+  const before = JSON.stringify(p);
+  _planNormalizeTypeToBase(p, "ingreso", 40);
+  _planNormalizeTypeToBase(p, "egreso", 50);
+  const after = JSON.stringify(p);
+  LS.set(key, "done");
+  if (before === after) return false;
+  setPlan(p);
+  const url = LS.get("ec2_script_url", "");
+  if (url) fetch(url, { method: "POST", body: JSON.stringify({ action: "savePlan", plan: getPlan() }) }).catch(() => {
+  });
+  toast("Plan normalizado a base: ING 40 / EGR 50", "ok");
+  return true;
+}
 function renderPlan() {
   const plan = getPlan();
   const grupos = plan[planTipo] || [];
@@ -23076,7 +23562,7 @@ function renderPlan() {
     const canDownGrupo = gi < grupos.length - 1;
     const cuentas = g.cuentas || [];
     html += `<div class="card" style="margin-bottom:10px">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px" draggable="true" ondragstart="onPlanDragStart('grupo',${gi},-1,-1,event)" ondragover="onPlanDragOver('grupo',${gi},-1,-1,event)" ondrop="onPlanDrop('grupo',${gi},-1,-1,event)" ondragend="onPlanDragEnd()">
+      <div class="plan-drop-target" data-plan-drop-key="${_planBuildDropMarkerKey("grupo", gi, -1, -1)}" style="display:flex;align-items:center;gap:10px;margin-bottom:10px" draggable="true" ondragstart="onPlanDragStart('grupo',${gi},-1,-1,event)" ondragover="onPlanDragOver('grupo',${gi},-1,-1,event)" ondrop="onPlanDrop('grupo',${gi},-1,-1,event)" ondragend="onPlanDragEnd()">
         <div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${g.code}</div>
         <div style="flex:1;font-size:16px;font-weight:500;color:${color}">${g.name}</div>
         <button class="btn btn-ghost btn-xs" onclick="openPlanItemModal('cuenta',${gi})">+ cuenta</button>
@@ -23091,7 +23577,7 @@ function renderPlan() {
         const subs = c.subs || [];
         return `
         <div style="border-top:1px solid var(--border)">
-          <div style="padding:7px 0 7px 20px;display:flex;align-items:center;gap:8px" draggable="true" ondragstart="onPlanDragStart('cuenta',${gi},${ci},-1,event)" ondragover="onPlanDragOver('cuenta',${gi},${ci},-1,event)" ondrop="onPlanDrop('cuenta',${gi},${ci},-1,event)" ondragend="onPlanDragEnd()">
+          <div class="plan-drop-target" data-plan-drop-key="${_planBuildDropMarkerKey("cuenta", gi, ci, -1)}" style="padding:7px 0 7px 20px;display:flex;align-items:center;gap:8px" draggable="true" ondragstart="onPlanDragStart('cuenta',${gi},${ci},-1,event)" ondragover="onPlanDragOver('cuenta',${gi},${ci},-1,event)" ondrop="onPlanDrop('cuenta',${gi},${ci},-1,event)" ondragend="onPlanDragEnd()">
             <div style="font-family:var(--mono);font-size:11px;color:var(--muted);width:36px">${c.code}</div>
             <div style="flex:1;font-size:15px;font-weight:500">${c.name}${planTipo === "egreso" && !subs.some((s) => String(s.code || "").trim()) ? `<span style="margin-left:8px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase">${_escHtml(String(c.modoDestino || "solo_perpetuos").replace("solo_", "").replace("_", " "))}</span>` : ""}</div>
             <button class="btn btn-ghost btn-xs" style="color:var(--neu)" onclick="openPlanItemModal('sub',${gi},${ci})">+ sub</button>
@@ -23104,7 +23590,7 @@ function renderPlan() {
             const canUpSub = si > 0;
             const canDownSub = si < subs.length - 1;
             return `
-            <div style="padding:5px 0 5px 52px;display:flex;align-items:center;gap:8px;border-top:1px solid var(--border);background:var(--card2)" draggable="true" ondragstart="onPlanDragStart('sub',${gi},${ci},${si},event)" ondragover="onPlanDragOver('sub',${gi},${ci},${si},event)" ondrop="onPlanDrop('sub',${gi},${ci},${si},event)" ondragend="onPlanDragEnd()">
+            <div class="plan-drop-target" data-plan-drop-key="${_planBuildDropMarkerKey("sub", gi, ci, si)}" style="padding:5px 0 5px 52px;display:flex;align-items:center;gap:8px;border-top:1px solid var(--border);background:var(--card2)" draggable="true" ondragstart="onPlanDragStart('sub',${gi},${ci},${si},event)" ondragover="onPlanDragOver('sub',${gi},${ci},${si},event)" ondrop="onPlanDrop('sub',${gi},${ci},${si},event)" ondragend="onPlanDragEnd()">
               <div style="font-family:var(--mono);font-size:11px;color:var(--muted);width:40px">${s.code}</div>
               <div style="flex:1;font-size:14px;color:var(--muted2)">${s.name}${planTipo === "egreso" ? `<span style="margin-left:8px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase">${_escHtml(String(s.modoDestino || "solo_perpetuos").replace("solo_", "").replace("_", " "))}</span>` : ""}</div>
               <button class="btn btn-ghost btn-xs" style="color:var(--muted2);font-size:9px;${canUpSub ? "" : "opacity:.4;pointer-events:none"}" onclick="moveSub(${gi},${ci},${si},-1)">↑</button>
@@ -23118,6 +23604,7 @@ function renderPlan() {
     </div>`;
   });
   document.getElementById("plan-tree").innerHTML = html;
+  _planPrefillNextGrupoCode();
 }
 function addGrupo() {
   const c = document.getElementById("ng-c").value.trim(), n = document.getElementById("ng-n").value.trim();
@@ -23130,6 +23617,7 @@ function addGrupo() {
   setPlan(p);
   document.getElementById("ng-c").value = "";
   document.getElementById("ng-n").value = "";
+  _planPrefillNextGrupoCode();
   renderPlan();
   toast("Grupo agregado \u2713");
   const url = LS.get("ec2_script_url", "");
@@ -23145,6 +23633,8 @@ function openPlanItemModal(kind, gi, ci = null, si = null) {
   const nameEl = document.getElementById("plan-item-name");
   const destinoWrapEl = document.getElementById("plan-item-destino-wrap");
   const destinoModeEl = document.getElementById("plan-item-destino-mode");
+  const promoteWrapEl = document.getElementById("plan-item-promote-wrap");
+  const promoteBtnEl = document.getElementById("plan-item-promote-btn");
   const p = getPlan();
   let prefillCode = "", prefillName = "";
   let prefillDestinoMode = planTipo === "egreso" ? "solo_perpetuos" : "ambos";
@@ -23175,14 +23665,22 @@ function openPlanItemModal(kind, gi, ci = null, si = null) {
     }
   } else if (kind === "sub") {
     if (titleEl) titleEl.textContent = "Agregar subcuenta";
+    prefillCode = _planSuggestNextSubCode(planTipo, gi, ci);
   } else {
     if (titleEl) titleEl.textContent = "Agregar cuenta";
+    prefillCode = _planSuggestNextCuentaCode(planTipo, gi);
   }
   if (codeEl) codeEl.value = prefillCode;
   if (nameEl) nameEl.value = prefillName;
   const showDestino = planTipo === "egreso" && (kind === "sub" || kind === "editSub" || kind === "cuenta" || kind === "editCuenta" && !cuentaTieneSubcuentas);
   if (destinoWrapEl) destinoWrapEl.style.display = showDestino ? "block" : "none";
   if (destinoModeEl) destinoModeEl.value = prefillDestinoMode === "solo_perpetuos" || prefillDestinoMode === "solo_formacion_inicial" || prefillDestinoMode === "ambos" ? prefillDestinoMode : planTipo === "egreso" ? "solo_perpetuos" : "ambos";
+  const showPromote = kind === "editSub";
+  if (promoteWrapEl) promoteWrapEl.style.display = showPromote ? "block" : "none";
+  if (promoteBtnEl) {
+    const suggestedCuentaCode = showPromote ? _planSuggestNextCuentaCode(planTipo, gi) : "";
+    promoteBtnEl.textContent = showPromote ? `Convertir subcuenta en cuenta (${suggestedCuentaCode})` : "Convertir subcuenta en cuenta";
+  }
   openModal("modal-plan-item");
   setTimeout(() => {
     if (codeEl) codeEl.focus();
@@ -23284,6 +23782,62 @@ function savePlanItemModal() {
   if (_u) fetch(_u, { method: "POST", body: JSON.stringify({ action: "savePlan", plan: getPlan() }) }).catch(() => {
   });
 }
+function promoteSubToCuentaFromModal() {
+  if (!_planItemTarget || _planItemTarget.kind !== "editSub") return;
+  const { gi, ci, si } = _planItemTarget;
+  const p = getPlan();
+  const grupo = ((p[planTipo] || [])[gi] || null);
+  const cuentaPadre = ((grupo == null ? void 0 : grupo.cuentas) || [])[ci] || null;
+  const sub = ((cuentaPadre == null ? void 0 : cuentaPadre.subs) || [])[si] || null;
+  if (!grupo || !cuentaPadre || !sub) {
+    toast("Subcuenta no encontrada", "err");
+    return;
+  }
+  const nuevoCodigoCuenta = _planSuggestNextCuentaCode(planTipo, gi);
+  const nuevoNombreCuenta = String(sub.name || "").trim() || `Cuenta ${nuevoCodigoCuenta}`;
+  const nuevaCuenta = {
+    code: nuevoCodigoCuenta,
+    name: nuevoNombreCuenta,
+    subs: [],
+    ...planTipo === "egreso" ? { modoDestino: String(sub.modoDestino || "solo_perpetuos") } : {}
+  };
+  const oldG = String(grupo.code || "");
+  const oldC = String(cuentaPadre.code || "");
+  const oldS = String(sub.code || "");
+  const movs = getMovs();
+  let migrated = 0;
+  const nextMovs = movs.map((m) => {
+    if (String(m == null ? void 0 : m.tipo) !== String(planTipo)) return m;
+    if (String((m == null ? void 0 : m.gCode) || "") !== oldG) return m;
+    if (String((m == null ? void 0 : m.cCode) || "") !== oldC) return m;
+    if (String((m == null ? void 0 : m.sCode) || "") !== oldS) return m;
+    migrated += 1;
+    return {
+      ...m,
+      cCode: nuevoCodigoCuenta,
+      cuenta: nuevoNombreCuenta,
+      cName: nuevoNombreCuenta,
+      sCode: "",
+      sub: "",
+      sName: ""
+    };
+  });
+  grupo.cuentas.push(nuevaCuenta);
+  cuentaPadre.subs.splice(si, 1);
+  setPlan(p);
+  setMovs(nextMovs);
+  closeModal("modal-plan-item");
+  _planItemTarget = null;
+  invalidateCache();
+  renderPlan();
+  if (panelActual === "historial") renderHistorial();
+  if (panelActual === "pendientes") renderPendientes();
+  if (panelActual === "resumen") renderResumen();
+  toast(`Subcuenta convertida a cuenta ✓ (${nuevoCodigoCuenta})${migrated ? ` · ${migrated} movimiento(s) migrado(s)` : ""}`, "ok");
+  const _u = LS.get("ec2_script_url", "");
+  if (_u) fetch(_u, { method: "POST", body: JSON.stringify({ action: "savePlan", plan: getPlan() }) }).catch(() => {
+  });
+}
 function addCuenta(gi) {
   openPlanItemModal("cuenta", gi);
 }
@@ -23313,6 +23867,25 @@ function addSub(gi, ci) {
   openPlanItemModal("sub", gi, ci);
 }
 let _planDragState = null;
+let _planDropMarkerKey = "";
+function _planBuildDropMarkerKey(level, gi, ci, si) {
+  return `${String(level || "")}::${Number(gi)}::${Number(ci)}::${Number(si)}`;
+}
+function _planSetDropMarker(level, gi, ci, si) {
+  const key = _planBuildDropMarkerKey(level, gi, ci, si);
+  if (_planDropMarkerKey === key) return;
+  const prev = document.querySelector(".plan-drop-target.plan-drop-mark");
+  if (prev) prev.classList.remove("plan-drop-mark");
+  _planDropMarkerKey = key;
+  const next = document.querySelector(`.plan-drop-target[data-plan-drop-key="${key}"]`);
+  if (next) next.classList.add("plan-drop-mark");
+}
+function _planClearDropMarker() {
+  if (!_planDropMarkerKey) return;
+  const prev = document.querySelector(".plan-drop-target.plan-drop-mark");
+  if (prev) prev.classList.remove("plan-drop-mark");
+  _planDropMarkerKey = "";
+}
 function _planMoveArrayItem(arr, from, to) {
   if (!Array.isArray(arr) || from === to) return false;
   if (from < 0 || to < 0 || from >= arr.length || to >= arr.length) return false;
@@ -23330,6 +23903,9 @@ function _planCanDrop(level, gi, ci, si) {
   return false;
 }
 function onPlanDragStart(level, gi, ci, si, ev) {
+  const prev = document.querySelector(".plan-drop-target.plan-drop-mark");
+  if (prev) prev.classList.remove("plan-drop-mark");
+  _planDropMarkerKey = "";
   _planDragState = { level, gi: Number(gi), ci: Number(ci), si: Number(si) };
   if (ev == null ? void 0 : ev.dataTransfer) {
     ev.dataTransfer.effectAllowed = "move";
@@ -23343,11 +23919,13 @@ function onPlanDragOver(level, gi, ci, si, ev) {
   if (!_planCanDrop(level, gi, ci, si)) return;
   if (ev == null ? void 0 : ev.preventDefault) ev.preventDefault();
   if ((ev == null ? void 0 : ev.dataTransfer)) ev.dataTransfer.dropEffect = "move";
+  _planSetDropMarker(level, gi, ci, si);
 }
 function onPlanDrop(level, gi, ci, si, ev) {
   if (ev == null ? void 0 : ev.preventDefault) ev.preventDefault();
   if (!_planCanDrop(level, gi, ci, si)) {
     _planDragState = null;
+    _planClearDropMarker();
     return;
   }
   const from = _planDragState;
@@ -23364,7 +23942,9 @@ function onPlanDrop(level, gi, ci, si, ev) {
     moved = _planMoveArrayItem(subs, from.si, Number(si));
   }
   _planDragState = null;
+  _planClearDropMarker();
   if (!moved) return;
+  _planAutoRenumberTree(p, planTipo);
   setPlan(p);
   renderPlan();
   toast("Orden actualizado", "ok");
@@ -23374,6 +23954,7 @@ function onPlanDrop(level, gi, ci, si, ev) {
 }
 function onPlanDragEnd() {
   _planDragState = null;
+  _planClearDropMarker();
 }
 function moveGrupo(gi, delta) {
   const p = getPlan();
@@ -23381,6 +23962,7 @@ function moveGrupo(gi, delta) {
   const ni = gi + delta;
   if (gi < 0 || ni < 0 || gi >= grupos.length || ni >= grupos.length) return;
   [grupos[gi], grupos[ni]] = [grupos[ni], grupos[gi]];
+  _planAutoRenumberTree(p, planTipo);
   setPlan(p);
   renderPlan();
   toast("Grupo reordenado", "ok");
@@ -23394,6 +23976,7 @@ function moveCuenta(gi, ci, delta) {
   const ni = ci + delta;
   if (ci < 0 || ni < 0 || ci >= cuentas.length || ni >= cuentas.length) return;
   [cuentas[ci], cuentas[ni]] = [cuentas[ni], cuentas[ci]];
+  _planAutoRenumberTree(p, planTipo);
   setPlan(p);
   renderPlan();
   toast("Cuenta reordenada", "ok");
@@ -23407,6 +23990,7 @@ function moveSub(gi, ci, si, delta) {
   const ni = si + delta;
   if (si < 0 || ni < 0 || si >= subs.length || ni >= subs.length) return;
   [subs[si], subs[ni]] = [subs[ni], subs[si]];
+  _planAutoRenumberTree(p, planTipo);
   setPlan(p);
   renderPlan();
   toast("Subcuenta reordenada", "ok");
@@ -29412,7 +29996,7 @@ function cargarDatosDemo() {
       pendienteCuentas: isPend,
       porConfirmar: isPend,
       isPend,
-      codigo: genCodigo(isPend ? "pend" : "ingreso", fecha),
+      codigo: genCodigo("ingreso", fecha),
       ts: baseTs(i),
       tsMs: Date.now() - (280 - i) * 1e4
     });
@@ -29449,8 +30033,7 @@ function cargarDatosDemo() {
       pendienteCuentas: isPend,
       porConfirmar: isPend,
       isPend,
-      codigo: genCodigo(isPend ? "pend" : "egreso", fecha),
-      codigoEgreso: isPend ? genCodigo("egreso", fecha) : void 0,
+      codigo: genCodigo("egreso", fecha),
       ts: baseTs(i + 300),
       tsMs: Date.now() - (260 - i) * 9e3
     });
@@ -29588,6 +30171,153 @@ function eliminarMovimientosDemo() {
   }
   toast(`Movimientos demo eliminados: ${eliminados}`, "ok");
 }
+function _demoMayIso(day, year) {
+  const y = Number(year) || new Date().getFullYear();
+  const d = String(Math.max(1, Math.min(28, Number(day) || 1))).padStart(2, "0");
+  return `${y}-05-${d}`;
+}
+function _pickDemoEgresoClasif() {
+  const plan = getPlan();
+  const egresos = (plan && Array.isArray(plan.egreso) ? plan.egreso : []).filter((g) => g && !g.pending && String(g.code || "") !== "00");
+  const g = egresos[0] || { code: "50", name: "Egresos" };
+  const cuentas = Array.isArray(g.cuentas) ? g.cuentas.filter((c) => c && String(c.code || "") && String(c.code || "") !== "001") : [];
+  const c = cuentas[0] || { code: "501", name: "Servicios publicos", subs: [] };
+  const subs = Array.isArray(c.subs) ? c.subs.filter((s) => s && String(s.code || "")) : [];
+  const s = subs[0] || { code: "", name: "" };
+  return {
+    gCode: String(g.code || "50"),
+    grupo: String(g.name || "Egresos"),
+    cCode: String(c.code || "501"),
+    cuenta: String(c.name || "Servicios publicos"),
+    sCode: String(s.code || ""),
+    sub: String(s.name || "")
+  };
+}
+function cargarServiciosDemoMayoTemporal(opts) {
+  const options = opts && typeof opts === "object" ? opts : {};
+  const silent = !!options.silent;
+  const force = !!options.force;
+  const ask = !silent && !force;
+  if (ask && !confirm("Cargar servicios demo temporales (3 meses) para visualizar el tablero?")) return false;
+  const KEY_ACTIVE = "ec2_demo_servicios_mayo_temp_v2";
+  const KEY_SERVICE_IDS = "ec2_demo_servicios_mayo_temp_v2_service_ids";
+  const KEY_MOV_IDS = "ec2_demo_servicios_mayo_temp_v2_mov_ids";
+  if (!force && LS.get(KEY_ACTIVE, false)) {
+    if (!silent) toast("Los servicios demo ya estan cargados.", "warn");
+    return false;
+  }
+  const ts = new Date().toISOString();
+  const year = new Date().getFullYear();
+  // 6 servicios demo con pagos en mayo, abril y marzo
+  const defs = [
+    { tipo: "agua", empresa: "SEDAPAR Demo", titular: "Fraternidad San Francisco", suministro: "SUM-AGUA-2026", direccion: "Jr. Paz 145", pertenece: "fraternidad", pagos: {
+      mayo:  [{ day: 3, monto: 214.5, pend: false }, { day: 19, monto: 92.3, pend: true }],
+      abril: [{ day: 4, monto: 198.0, pend: false }, { day: 20, monto: 87.5, pend: false }],
+      marzo: [{ day: 5, monto: 175.2, pend: false }]
+    }},
+    { tipo: "luz", empresa: "SEAL Energía Demo", titular: "Parroquia Nuestra Señora", suministro: "SUM-LUZ-2026", direccion: "Av. Sol 230", pertenece: "parroquia", pagos: {
+      mayo:  [{ day: 6, monto: 486.2, pend: false }],
+      abril: [{ day: 7, monto: 512.8, pend: false }],
+      marzo: [{ day: 6, monto: 463.4, pend: false }]
+    }},
+    { tipo: "gas", empresa: "Calidda Demo", titular: "Fraternidad San Francisco", suministro: "SUM-GAS-2026", direccion: "Calle Paz 44", pertenece: "fraternidad", pagos: {
+      mayo:  [{ day: 8, monto: 136.7, pend: false }],
+      abril: [{ day: 9, monto: 124.3, pend: false }],
+      marzo: [{ day: 8, monto: 118.9, pend: true }]
+    }},
+    { tipo: "internet", empresa: "Claro Empresas Demo", titular: "Fraternidad San Francisco", suministro: "SUM-INT-2026", direccion: "Jr. Paz 145", pertenece: "fraternidad", pagos: {
+      mayo:  [{ day: 10, monto: 179.9, pend: false }],
+      abril: [{ day: 11, monto: 179.9, pend: false }],
+      marzo: [{ day: 10, monto: 179.9, pend: false }]
+    }},
+    { tipo: "telefono", empresa: "Movistar Fijo Demo", titular: "Parroquia Nuestra Señora", suministro: "SUM-TEL-2026", direccion: "Av. Sol 230", pertenece: "parroquia", pagos: {
+      mayo:  [{ day: 15, monto: 88.4, pend: true }],
+      abril: [{ day: 16, monto: 88.4, pend: false }],
+      marzo: [{ day: 15, monto: 92.0, pend: false }]
+    }},
+    { tipo: "cable", empresa: "CableVision Demo", titular: "Fraternidad San Francisco", suministro: "SUM-CAB-2026", direccion: "Jr. Paz 145", pertenece: "fraternidad", pagos: {
+      mayo:  [{ day: 22, monto: 74.9, pend: false }],
+      abril: [{ day: 23, monto: 74.9, pend: false }],
+      marzo: [{ day: 22, monto: 74.9, pend: false }]
+    }}
+  ];
+  const monthOffsets = { mayo: 0, abril: -1, marzo: -2 };
+  const cuentas = getCuentas();
+  const cuentaPago = (cuentas && cuentas[0] && cuentas[0].id) ? cuentas[0].id : "";
+  const cls = _pickDemoEgresoClasif();
+  const svcs = getServicios();
+  const movs = getMovs();
+  const serviceIds = [];
+  const movIds = [];
+  defs.forEach((d, idx) => {
+    const sid = `svc_demo_may_${year}_${idx + 1}`;
+    const servicio = { id: sid, tipo: d.tipo, empresa: d.empresa, titular: d.titular, suministro: d.suministro, direccion: d.direccion, pertenece: d.pertenece, ts };
+    const prevIdx = svcs.findIndex((s) => String((s == null ? void 0 : s.id) || "") === sid);
+    if (prevIdx >= 0) svcs[prevIdx] = servicio; else svcs.push(servicio);
+    serviceIds.push(sid);
+    // add payments for each month
+    Object.entries(d.pagos).forEach(([mesKey, pagosArr]) => {
+      const offset = monthOffsets[mesKey];
+      const baseDate = new Date(year, 4 + offset, 1); // mayo=4, abril=3, marzo=2
+      const y = baseDate.getFullYear();
+      const mm = String(baseDate.getMonth() + 1).padStart(2, "0");
+      pagosArr.forEach((p, pi) => {
+        const id = `mov_demo_may_${year}_${idx + 1}_${mesKey}_${pi + 1}`;
+        const dd = String(p.day).padStart(2, "0");
+        const fecha = `${y}-${mm}-${dd}`;
+        const mov = {
+          id, tipo: "egreso", fecha, monto: p.monto, moneda: "PEN",
+          gCode: cls.gCode, grupo: cls.grupo, cCode: cls.cCode, cuenta: cls.cuenta, sCode: cls.sCode, sub: cls.sub,
+          desc: `Pago ${d.tipo} demo ${mesKey} ${year}`, cuentaPago,
+          servicio: sid, pendienteCuentas: !!p.pend, porConfirmar: !!p.pend, isPend: !!p.pend,
+          boleta: "si", codigo: genCodigo("egreso", fecha), ts, tsMs: Date.now() - (idx * 30000 + pi * 1000)
+        };
+        const movIdx = movs.findIndex((m) => String((m == null ? void 0 : m.id) || "") === id);
+        if (movIdx >= 0) movs[movIdx] = mov; else movs.push(mov);
+        movIds.push(id);
+      });
+    });
+  });
+  setServicios(svcs);
+  setMovs(movs);
+  LS.set(KEY_ACTIVE, true);
+  LS.set(KEY_SERVICE_IDS, serviceIds);
+  LS.set(KEY_MOV_IDS, movIds);
+  invalidateCache();
+  if (panelActual === "servicios") renderServicios();
+  else if (panelActual === "resumen") renderResumen();
+  if (!silent) toast(`Demo cargado: ${serviceIds.length} servicios, ${movIds.length} movimientos en 3 meses.`, "ok");
+  return true;
+}
+function eliminarServiciosDemoMayoTemporal() {
+  const KEY_ACTIVE = "ec2_demo_servicios_mayo_temp_v2";
+  const KEY_SERVICE_IDS = "ec2_demo_servicios_mayo_temp_v2_service_ids";
+  const KEY_MOV_IDS = "ec2_demo_servicios_mayo_temp_v2_mov_ids";
+  // also clean up v1 keys if present
+  const v1ServiceIds = LS.get("ec2_demo_servicios_mayo_temp_v1_service_ids", []);
+  const v1MovIds = LS.get("ec2_demo_servicios_mayo_temp_v1_mov_ids", []);
+  const serviceIds = [...LS.get(KEY_SERVICE_IDS, []), ...v1ServiceIds];
+  const movIds = [...LS.get(KEY_MOV_IDS, []), ...v1MovIds];
+  const serviceIdSet = new Set((Array.isArray(serviceIds) ? serviceIds : []).map((x) => String(x || "")));
+  const movIdSet = new Set((Array.isArray(movIds) ? movIds : []).map((x) => String(x || "")));
+  const prevServices = getServicios();
+  const prevMovs = getMovs();
+  const nextServices = prevServices.filter((s) => !serviceIdSet.has(String((s == null ? void 0 : s.id) || "")));
+  const nextMovs = prevMovs.filter((m) => !movIdSet.has(String((m == null ? void 0 : m.id) || "")));
+  const removedSvc = prevServices.length - nextServices.length;
+  const removedMov = prevMovs.length - nextMovs.length;
+  if (!removedSvc && !removedMov) {
+    toast("No se encontraron servicios demo para limpiar.", "warn");
+  }
+  setServicios(nextServices);
+  setMovs(nextMovs);
+  ["ec2_demo_servicios_mayo_temp_v1","ec2_demo_servicios_mayo_temp_v1_service_ids","ec2_demo_servicios_mayo_temp_v1_mov_ids",
+   KEY_ACTIVE, KEY_SERVICE_IDS, KEY_MOV_IDS].forEach((k) => LS.set(k, k.endsWith("_ids") ? [] : false));
+  invalidateCache();
+  if (panelActual === "servicios") renderServicios();
+  else if (panelActual === "resumen") renderResumen();
+  toast(`Demo eliminado: ${removedSvc} servicios, ${removedMov} movimientos.`, "ok");
+}
 function updateAppViewportHeight() {
   const isStandalone = window.navigator.standalone === true || window.matchMedia && window.matchMedia("(display-mode: standalone)").matches;
   const vv = window.visualViewport;
@@ -29706,6 +30436,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initRegistrar();
   applyMoneyInputEnhancements();
   initConciliacion();
+  // Produccion: no auto-cargar movimientos demo de servicios.
   if (_hasActiveRemoteConfig()) {
     updateSyncUI();
     setTimeout(async () => {
@@ -29991,6 +30722,9 @@ document.addEventListener("DOMContentLoaded", () => {
         <option value="solo_perpetuos">Solo Perpetuos</option>
         <option value="solo_formacion_inicial">Solo Formacion inicial</option>
       </select>
+    </div>
+    <div class="form-group" id="plan-item-promote-wrap" style="display:none;margin-top:8px">
+      <button class="btn btn-sec btn-sm" type="button" id="plan-item-promote-btn" onclick="promoteSubToCuentaFromModal()">Convertir subcuenta en cuenta</button>
     </div>
     <div class="modal-footer">
       <button class="btn btn-primary" onclick="savePlanItemModal()">Guardar</button>
