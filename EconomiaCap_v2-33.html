@@ -11145,7 +11145,7 @@ function _bindRendicionResolverInputs() {
   };
   if (faltEl) faltEl.oninput = () => _rendicionResolverUpdateCalc(false);
 }
-function confirmarRendicionResolver() {
+async function confirmarRendicionResolver() {
   const idEl = document.getElementById("rendicion-resolver-origen-id");
   const fechaEl = document.getElementById("rendicion-resolver-fecha");
   const sustEl = document.getElementById("rendicion-resolver-sustentado");
@@ -11191,6 +11191,7 @@ function confirmarRendicionResolver() {
     toast("El total de rendición supera el saldo pendiente", "warn");
     return;
   }
+  const nuevosMovs = [];
   if (montoDevuelto > 0) {
     const movIngreso = {
       id: genId(),
@@ -11221,7 +11222,7 @@ function confirmarRendicionResolver() {
       tsMs: Date.now()
     };
     movs.push(movIngreso);
-    pushMovs([movIngreso]);
+    nuevosMovs.push(movIngreso);
   }
   if (montoFaltante > 0) {
     const descFaltanteBase = "Pérdida de caja";
@@ -11254,7 +11255,7 @@ function confirmarRendicionResolver() {
       tsMs: Date.now()
     };
     movs.push(movFaltante);
-    pushMovs([movFaltante]);
+    nuevosMovs.push(movFaltante);
   }
   const updatedOrigen = _syncRendicionStateOnMov({
     ...origen,
@@ -11265,7 +11266,21 @@ function confirmarRendicionResolver() {
     rendicionUltimaFecha: fecha
   });
   movs[idx] = updatedOrigen;
-  setMovs(movs);
+  try {
+    await _ensureCloudCommitMovs(movs, "rendicion-resolver-confirm");
+  } catch (e) {
+    const msg = e && e.message ? e.message : "No se pudo confirmar la rendición.";
+    toast(msg, "err");
+    return;
+  }
+  const ok = setMovs(movs);
+  if (!ok) return;
+  if (nuevosMovs.length && typeof pushMovs === "function") {
+    try {
+      pushMovs(nuevosMovs);
+    } catch (_e) {
+    }
+  }
   invalidateCache();
   closeRendicionResolverModal();
   closeHistMobileDetailModal();
@@ -16670,6 +16685,7 @@ let _catSelectorMovId = null;
 let _catSelectorLevel = "grupos";
 let _catSelectorGrupoCode = null;
 let _catSelectorCuentaCode = null;
+let _catSelectorDestinoPending = null;
 function openCategorySelector(movId) {
   const movIdNorm = String(movId);
   const mov = getMovs().find((m) => String(m.id) === movIdNorm);
@@ -16682,6 +16698,7 @@ function openCategorySelector(movId) {
   _catSelectorLevel = "grupos";
   _catSelectorGrupoCode = null;
   _catSelectorCuentaCode = null;
+  _catSelectorDestinoPending = null;
   _catSelectorSearch = "";
   renderCategorySelector();
   document.getElementById("modal-category-selector").classList.add("open");
@@ -16976,7 +16993,15 @@ function renderCategorySelector() {
 
   let titulo = "Clasificar movimiento";
   let html = "";
-  if (q) {
+  if (_catSelectorLevel === "destino") {
+    titulo = "Destino contable";
+    const pending = _catSelectorDestinoPending || {};
+    const hint = pending.label || "Cuenta seleccionada";
+    html = '<div class="reg-assoc-grid">'
+      + _regSquareButtonHtml("Perpetuos", hint, "tag", "selectCategoryDestino('perpetuos')")
+      + _regSquareButtonHtml("F. Inicial", hint, "tag", "selectCategoryDestino('formacion_inicial')")
+      + "</div>";
+  } else if (q) {
     titulo = "Buscar en plan contable";
     const results = _regBuildClassSearchResults(tipo, q);
     if (!results.length) {
@@ -16986,7 +17011,7 @@ function renderCategorySelector() {
         return _regSquareButtonHtml(item.code + " \xB7 " + item.name,
           item.level === "subcuenta" ? "Subcuenta" : item.level === "cuenta" ? "Cuenta" : "Grupo",
           item.level === "subcuenta" ? "tag" : item.level === "cuenta" ? "folder" : "layers",
-          "selectCategory(" + jsArg(_catSelectorMovId) + ",'" + _escAttr(item.gCode) + "','" + _escAttr(item.cCode) + "','" + _escAttr(item.sCode) + "')");
+          "selectCategoryPick('" + _escAttr(item.gCode) + "','" + _escAttr(item.cCode) + "','" + _escAttr(item.sCode) + "')");
       }).join("") + "</div>";
     }
   } else if (_catSelectorLevel === "grupos") {
@@ -17003,7 +17028,7 @@ function renderCategorySelector() {
       const hasSubs = c.subs && c.subs.length > 0;
       const action = hasSubs
         ? "selectCategoryLevel('cuenta','" + _escAttr(c.code) + "')"
-        : "selectCategory(" + jsArg(_catSelectorMovId) + ",'" + _escAttr(grupo.code) + "','" + _escAttr(c.code) + "','')";
+        : "selectCategoryPick('" + _escAttr(grupo.code) + "','" + _escAttr(c.code) + "','')";
       return _regSquareButtonHtml(c.code + " \xB7 " + c.name, "Cuenta", "folder", action);
     }).join("") + "</div>";
   } else if (_catSelectorLevel === "subs") {
@@ -17012,11 +17037,11 @@ function renderCategorySelector() {
     if (!grupo || !cuenta) { _catSelectorLevel = "grupos"; renderCategorySelector(); return; }
     titulo = "\u2190 " + cuenta.code + " \xB7 " + cuenta.name;
     const sinSub = _regSquareButtonHtml("Sin subcuenta", "Opcional", "tag",
-      "selectCategory(" + jsArg(_catSelectorMovId) + ",'" + _escAttr(grupo.code) + "','" + _escAttr(cuenta.code) + "','')");
+      "selectCategoryPick('" + _escAttr(grupo.code) + "','" + _escAttr(cuenta.code) + "','')");
     const filtered = (cuenta.subs || []).filter((s) => matches(s.code, s.name));
     html = '<div class="reg-assoc-grid">' + sinSub + filtered.map((s) =>
       _regSquareButtonHtml(s.code + " \xB7 " + s.name, "Subcuenta", "tag",
-        "selectCategory(" + jsArg(_catSelectorMovId) + ",'" + _escAttr(grupo.code) + "','" + _escAttr(cuenta.code) + "','" + _escAttr(s.code) + "')")
+        "selectCategoryPick('" + _escAttr(grupo.code) + "','" + _escAttr(cuenta.code) + "','" + _escAttr(s.code) + "')")
     ).join("") + "</div>";
   }
   if (titleEl) titleEl.textContent = titulo;
@@ -17033,10 +17058,57 @@ function selectCategoryLevel(level, code) {
   }
   renderCategorySelector();
 }
+function _histCategoryLabelByCodes(tipo, gCode, cCode, sCode) {
+  const plan = getPlan();
+  const grupos = plan[tipo] || [];
+  const grupo = grupos.find((g) => String(g.code || "") === String(gCode || ""));
+  const cuenta = (grupo == null ? void 0 : grupo.cuentas || []).find((c) => String(c.code || "") === String(cCode || ""));
+  const sub = (cuenta == null ? void 0 : cuenta.subs || []).find((s) => String(s.code || "") === String(sCode || ""));
+  if (sub) return `${sub.code || ""} · ${sub.name || ""}`.trim();
+  if (cuenta) return `${cuenta.code || ""} · ${cuenta.name || ""}`.trim();
+  if (grupo) return `${grupo.code || ""} · ${grupo.name || ""}`.trim();
+  return "Cuenta seleccionada";
+}
+function _maybeOpenCategoryDestinoStep(movId, gCode, cCode, sCode) {
+  const mov = getMovs().find((m) => String(m.id) === String(movId));
+  if (!mov || mov.tipo !== "egreso" || !gCode || !cCode) return false;
+  const modo = _planModoDestinoByCodes(gCode, cCode, sCode);
+  if (modo !== "ambos") return false;
+  _catSelectorDestinoPending = {
+    movId: String(movId),
+    gCode: gCode || "",
+    cCode: cCode || "",
+    sCode: sCode || "",
+    returnLevel: _catSelectorLevel || "grupos",
+    label: _histCategoryLabelByCodes(mov.tipo, gCode, cCode, sCode)
+  };
+  _catSelectorLevel = "destino";
+  _catSelectorSearch = "";
+  renderCategorySelector();
+  return true;
+}
+function selectCategoryPick(gCode, cCode, sCode) {
+  if (!_catSelectorMovId) return;
+  if (_maybeOpenCategoryDestinoStep(_catSelectorMovId, gCode, cCode, sCode)) return;
+  selectCategory(_catSelectorMovId, gCode || "", cCode || "", sCode || "");
+}
+function selectCategoryDestino(destino) {
+  if (!_catSelectorDestinoPending) return;
+  const destinoSafe = destino === "formacion_inicial" ? "formacion_inicial" : "perpetuos";
+  const p = _catSelectorDestinoPending;
+  _catSelectorDestinoPending = null;
+  selectCategory(p.movId, p.gCode || "", p.cCode || "", p.sCode || "", destinoSafe);
+}
 function goBackCategoryLevel() {
   if (_bcpAssocMovId !== null) {
     _bcpAssocSource = "";
     renderBCPAssocSelector();
+    return;
+  }
+  if (_catSelectorLevel === "destino") {
+    _catSelectorLevel = (_catSelectorDestinoPending && _catSelectorDestinoPending.returnLevel) || "grupos";
+    _catSelectorDestinoPending = null;
+    renderCategorySelector();
     return;
   }
   if (_catSelectorLevel === "cuentas") {
@@ -17055,11 +17127,12 @@ function closeCategorySelector() {
   _catSelectorLevel = "grupos";
   _catSelectorGrupoCode = null;
   _catSelectorCuentaCode = null;
+  _catSelectorDestinoPending = null;
   _catSelectorSearch = "";
   _bcpAssocMovId = null;
   _bcpAssocSource = "";
 }
-async function selectCategory(movId, gCode, cCode, sCode) {
+async function selectCategory(movId, gCode, cCode, sCode, destinoManual) {
   const movs = getMovs();
   const idx = movs.findIndex((m) => String(m.id) === String(movId));
   if (idx < 0) return;
@@ -17070,6 +17143,11 @@ async function selectCategory(movId, gCode, cCode, sCode) {
   const cuenta = grupo == null ? void 0 : grupo.cuentas.find((c) => c.code === cCode);
   const sub = cuenta == null ? void 0 : cuenta.subs.find((s) => s.code === sCode);
   const nextMovs = movs.slice();
+  let destinoContable = String(destinoManual || nextMovs[idx].destinoContable || "");
+  if (mov.tipo === "egreso") {
+    const modo = _planModoDestinoByCodes(gCode, cCode, sCode);
+    destinoContable = _resolveDestinoForSelection({ destinoContable }, modo);
+  }
   nextMovs[idx] = {
     ...nextMovs[idx],
     gCode,
@@ -17077,7 +17155,8 @@ async function selectCategory(movId, gCode, cCode, sCode) {
     cCode,
     cuenta: (cuenta == null ? void 0 : cuenta.name) || "",
     sCode,
-    sub: (sub == null ? void 0 : sub.name) || ""
+    sub: (sub == null ? void 0 : sub.name) || "",
+    destinoContable: mov.tipo === "egreso" ? destinoContable : ""
   };
   try {
     await _ensureCloudCommitMovs(nextMovs, "hist-category");
@@ -18894,7 +18973,7 @@ function closeCuriaCobro() {
   if (modal) modal.classList.remove("open");
   _curiaCobroMovId = "";
 }
-function confirmarCobroReembolso() {
+async function confirmarCobroReembolso() {
   const fecha = document.getElementById("curia-fecha").value;
   const monto = parseMonto(document.getElementById("curia-monto-cobro").value) || 0;
   const cuentaPago = String((document.getElementById("curia-cuenta-cobro") || {}).value || "").trim();
@@ -18922,14 +19001,17 @@ function confirmarCobroReembolso() {
     toast("Selecciona la cuenta donde entra el reembolso", "warn");
     return;
   }
-  const nuevoCobrado = _movCuriaMontoCobrado(movs[idx]) + monto;
-  movs[idx].curiaMontoCobrado = nuevoCobrado;
-  movs[idx].curiaCobrado = _movCuriaSaldoPendiente({ ...movs[idx], curiaMontoCobrado: nuevoCobrado }) <= 0.009;
-  movs[idx].curiaCobradoFecha = fecha;
-  movs[idx].curiaCobradoMonto = monto;
-  movs[idx].curiaCobradoObs = obs;
-  movs[idx].curiaCobradoCuentaPago = cuentaPago;
-  movs.push({
+  const nextMovs = movs.slice();
+  const movAct = { ...nextMovs[idx] };
+  const nuevoCobrado = _movCuriaMontoCobrado(movAct) + monto;
+  movAct.curiaMontoCobrado = nuevoCobrado;
+  movAct.curiaCobrado = _movCuriaSaldoPendiente({ ...movAct, curiaMontoCobrado: nuevoCobrado }) <= 0.009;
+  movAct.curiaCobradoFecha = fecha;
+  movAct.curiaCobradoMonto = monto;
+  movAct.curiaCobradoObs = obs;
+  movAct.curiaCobradoCuentaPago = cuentaPago;
+  nextMovs[idx] = movAct;
+  nextMovs.push({
     id: genId(),
     tipo: "ingreso",
     fecha,
@@ -18940,7 +19022,7 @@ function confirmarCobroReembolso() {
     cuenta: "Sin clasificar / Por distribuir",
     desc: `Devolución reembolso: ${movs[idx].desc || ""}`,
     cuentaPago: cuentaPago,
-    moneda: movs[idx].moneda || "PEN",
+    moneda: movAct.moneda || "PEN",
     incluirEnPlanillaOperativa: false,
     boleta: null,
     curia: false,
@@ -18949,10 +19031,18 @@ function confirmarCobroReembolso() {
     ts: (new Date()).toISOString(),
     tsMs: Date.now()
   });
-  setMovs(movs);
+  try {
+    await _ensureCloudCommitMovs(nextMovs, "curia-cobro-confirm");
+  } catch (e) {
+    const msg = e && e.message ? e.message : "No se pudo registrar la devolución.";
+    toast(msg, "err");
+    return;
+  }
+  const ok = setMovs(nextMovs);
+  if (!ok) return;
   closeCuriaCobro();
-  if (String(_histMobileDetailMovId || "") === String(movs[idx].id || "")) closeHistMobileDetailModal();
-  toast(movs[idx].curiaCobrado ? "Devolución registrada correctamente" : "Abono de reembolso registrado", "ok");
+  if (String(_histMobileDetailMovId || "") === String(movAct.id || "")) closeHistMobileDetailModal();
+  toast(movAct.curiaCobrado ? "Devolución registrada correctamente" : "Abono de reembolso registrado", "ok");
   if (panelActual === "pendientes" && typeof renderPendientes === "function") renderPendientes();
   if (panelActual === "historial" && typeof renderHistorial === "function") renderHistorial();
   if (panelActual === "fondos" && typeof renderCuentas === "function") renderCuentas();
@@ -19003,7 +19093,7 @@ function cancelarCobro() {
     wrap.style.display = "none";
   }
 }
-function confirmarCobro(movId) {
+async function confirmarCobro(movId) {
   const fecha = document.getElementById("cobro-fecha").value;
   const monto = parseMonto(document.getElementById("cobro-monto").value) || 0;
   const obs = document.getElementById("cobro-obs").value;
@@ -19011,25 +19101,28 @@ function confirmarCobro(movId) {
   const movs = getMovs();
   const idx = movs.findIndex((m) => String(m.id) === String(movId));
   if (idx >= 0) {
-    const cuentaPagoFinal = cuentaPago || String(movs[idx].cuentaPago || "");
+    const nextMovs = movs.slice();
+    const movAct = { ...nextMovs[idx] };
+    const cuentaPagoFinal = cuentaPago || String(movAct.cuentaPago || "");
     if (!cuentaPagoFinal) {
       toast("Selecciona la cuenta donde entra el reembolso", "warn");
       return;
     }
-    const saldoPendiente = _movCuriaSaldoPendiente(movs[idx]);
+    const saldoPendiente = _movCuriaSaldoPendiente(movAct);
     if (monto - saldoPendiente > 0.009) {
       toast("El cobro supera el saldo pendiente del reembolso", "warn");
       return;
     }
-    const nuevoCobrado = _movCuriaMontoCobrado(movs[idx]) + monto;
-    movs[idx].curiaMontoCobrado = nuevoCobrado;
-    movs[idx].curiaCobrado = _movCuriaSaldoPendiente({ ...movs[idx], curiaMontoCobrado: nuevoCobrado }) <= 0.009;
-    movs[idx].curiaCobradoFecha = fecha;
-    movs[idx].curiaCobradoMonto = monto;
-    movs[idx].curiaCobradoMetodo = cobroMetodo;
-    movs[idx].curiaCobradoObs = obs;
-    movs[idx].curiaCobradoCuentaPago = cuentaPagoFinal;
-    movs.push({
+    const nuevoCobrado = _movCuriaMontoCobrado(movAct) + monto;
+    movAct.curiaMontoCobrado = nuevoCobrado;
+    movAct.curiaCobrado = _movCuriaSaldoPendiente({ ...movAct, curiaMontoCobrado: nuevoCobrado }) <= 0.009;
+    movAct.curiaCobradoFecha = fecha;
+    movAct.curiaCobradoMonto = monto;
+    movAct.curiaCobradoMetodo = cobroMetodo;
+    movAct.curiaCobradoObs = obs;
+    movAct.curiaCobradoCuentaPago = cuentaPagoFinal;
+    nextMovs[idx] = movAct;
+    nextMovs.push({
       id: genId(),
       tipo: "ingreso",
       fecha,
@@ -19040,7 +19133,7 @@ function confirmarCobro(movId) {
       cuenta: "Sin clasificar / Por distribuir",
       desc: `Devoluci\xF3n Curia: ${movs[idx].desc || ""}`,
       cuentaPago: cuentaPagoFinal,
-      moneda: movs[idx].moneda || "PEN",
+      moneda: movAct.moneda || "PEN",
       incluirEnPlanillaOperativa: false,
       boleta: null,
       curia: false,
@@ -19049,16 +19142,24 @@ function confirmarCobro(movId) {
       ts: (/* @__PURE__ */ new Date()).toISOString(),
       tsMs: Date.now()
     });
-    setMovs(movs);
+    try {
+      await _ensureCloudCommitMovs(nextMovs, "curia-cobro-inline");
+    } catch (e) {
+      const msg = e && e.message ? e.message : "No se pudo registrar la devolución.";
+      toast(msg, "err");
+      return;
+    }
+    const ok = setMovs(nextMovs);
+    if (!ok) return;
     cancelarCobro();
     if (String(_histMobileDetailMovId || "") === String(movId || "")) closeHistMobileDetailModal();
-    const updIdx = movs.findIndex((m) => String(m.id) === String(movId));
+    const updIdx = nextMovs.findIndex((m) => String(m.id) === String(movId));
     if (updIdx >= 0) {
       const url2 = LS.get("ec2_script_url", "");
       if (url2) {
-        fetch(url2, { method: "POST", body: JSON.stringify({ action: "updateMov", mov: movs[updIdx] }) }).catch(() => {
+        fetch(url2, { method: "POST", body: JSON.stringify({ action: "updateMov", mov: nextMovs[updIdx] }) }).catch(() => {
         });
-        fetch(url2, { method: "POST", body: JSON.stringify({ action: "addMov", mov: movs[movs.length - 1] }) }).catch(() => {
+        fetch(url2, { method: "POST", body: JSON.stringify({ action: "addMov", mov: nextMovs[nextMovs.length - 1] }) }).catch(() => {
         });
       }
     }
@@ -21612,7 +21713,7 @@ function _movTieneClasificacionValida(mov, allMovs) {
   }
   return !!mov.gCode && !!mov.cCode;
 }
-function accionConfirmarPendiente(id, ev) {
+async function accionConfirmarPendiente(id, ev) {
   if (ev) {
     ev.preventDefault();
     ev.stopPropagation();
@@ -21636,8 +21737,17 @@ function accionConfirmarPendiente(id, ev) {
     porConfirmar: false,
     isPend: false
   });
-  movs[idx] = updated;
-  setMovs(movs);
+  const nextMovs = movs.slice();
+  nextMovs[idx] = updated;
+  try {
+    await _ensureCloudCommitMovs(nextMovs, "pendiente-confirmar");
+  } catch (e) {
+    const msg = e && e.message ? e.message : "No se pudo confirmar el movimiento.";
+    toast(msg, "err");
+    return;
+  }
+  const ok = setMovs(nextMovs);
+  if (!ok) return;
   const url = LS.get("ec2_script_url", "");
   if (url) fetch(url, { method: "POST", body: JSON.stringify({ action: "updateMov", mov: updated }) }).catch(() => {
   });
