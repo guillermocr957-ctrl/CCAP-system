@@ -3,7 +3,7 @@
 // Maneja: caché, notificaciones push, funcionamiento offline
 // ══════════════════════════════════════════════════════════════════════════════
 
-const CACHE_VERSION = 'economiacap-v70';
+const CACHE_VERSION = 'economiacap-v71';
 const ASSETS_TO_CACHE = [
   './',
   './EconomiaCap_v2-33.html',
